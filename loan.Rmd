@@ -115,16 +115,17 @@ skim_without_charts(test.data)
 
 #### 5.1.1 Remove ID and factor conversion
 
-First, I will remove the "Loan_ID" and convert all character variables into factor because they are cateogorical variable. 
+First, I will remove the "Loan_ID" and convert all character variables into factor because they are categorical variable. I remove LOan_ID because it is meaningless for predictive analysis. 
 
 Converting variables into factors will help my analysis because it gives the data a grouping features which will enable useful R function as well as visualisation in later stage. 
 
 ```{r}
 
 train.data <- train.data %>% 
-  select(-Loan_ID) %>%     # Remove Loan_ID
-  mutate_if(is_character, as.factor) %>%    # Convert all character into factor.
-  mutate(Credit_History = as.factor(Credit_History))
+  select(-Loan_ID) %>%                                    # Remove Loan_ID 
+  mutate_if(is_character, as.factor) %>%                  # Convert all character into factor.
+  mutate(Credit_History = as.factor(Credit_History),      # Convert Credit_History into factor.
+         Loan_Amount_Term = as.factor(Loan_Amount_Term))  # Convert Loan_Amount_Term into factor.
 
 ```
 
@@ -135,62 +136,49 @@ After converting categorical variables into factor, following function help to s
 summary(train.data)
 
 ```
-I see that missing values (NA's) present in Gender, Married, Dependents, Self_Employed, LoanAmount and Loan_Amount_Term.
+Many variables have missing values, as denoted by "NA's". Missing values will be filled up in next section.
 
-#### 5.1.2 Replace NA in Factor
 
-For categorical variables with missing values, I replace these missing values with the level of mode (The most frequently appear category).    
+#### 5.1.2 Replacing NA
+
+Following codes replace all the NA with respective mode, which is the most occurring category of variable they belong. It is a decision after carefully examining its feasibility, these missing values are less than 5%, and their respective most occurring category have frequencies that are way higher than the rest of the categories. 
 
 ```{r}
 train.data <- train.data %>% 
   mutate(Gender = replace_na(Gender, "Male"),
          Married = replace_na(Married, "Yes"),
          Dependents = replace_na(Dependents, '0'),
-         Self_Employed = replace_na(Self_Employed, 'No'))
+         Self_Employed = replace_na(Self_Employed, 'No'),
+         Loan_Amount_Term = replace_na(Loan_Amount_Term, '360'))
   
 summary(train.data)
 
 ```
-Now the missing values (NAs) in Gender, Married, Dependents and Self-Employed have been filled up with the most possible level (the category that appears the most). 
-
-Regarding the NA in 50, by the rule of thumb if 
+Regarding the NA in credit history, I found that the 50 NA is too many (8%), and is quite close to 89 of "0". I decided to make it a new level. 
 
 ```{r}
+50/(89+475+50) 
 
+```
+```{r}
+names(train.data)
 ```
 
 
-
-#### 5.1.2 Replace NA in Factor
-
-Following code will 
-
-```{r, width = 12}
-
-par(mfrow = c(1, 3))
-
-hist(train.data[,8], main = "LoanAmount")
-hist(train.data[,9], main = "Loan_Amount_Term")
-plot(train.data[,10], main = "Credit_History")
+```{r}
+train.data2 <- train.data %>% 
+  mutate(Credit_History = replace_na(Credit_History, "3"))
 
 ```
 
 ```{r}
-df <- train.data %>% 
-  mutate(Loan_Amount_Term = as.factor(Loan_Amount_Term)) %>% 
-  rename("Loan_amount" = Loan_Amount_Term) %>% 
-  select(Loan_amount, Loan_Status)
-
-summary(df)
+summary(train.data2)
 
 ```
 
 
 
 
-
-
-## Exploratory Data Analysis
 
 ### 6 REFERENCE
 
