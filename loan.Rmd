@@ -55,8 +55,8 @@ Data is downloaded from the [Kaggle](https://www.kaggle.com/altruistdelhite04/lo
 The train and the test data are imported in following code chunk.
 
 ```{r}
-train.data <- read.csv("train_loan.csv")
-test.data <- read.csv("test_loan.csv")
+train.data <- read.csv("train_loan.csv", na.strings = c("", "NA"))
+test.data <- read.csv("test_loan.csv", na.strings = c("", "NA"))
 
 ```
 
@@ -77,8 +77,9 @@ head(test.data)
 ```
 From structural analysis, 
 
-* There are 614 observations (rows) in the train.data dataset and 367 observations in the test.data dataset.    
-* Train.data has the last variable 'Loan_status' that has either 'Y' or 'N' to indicate the success of a loan.
+* There are 614 observations (rows) in the train.data dataset and 367 observations in the test.data dataset.      
+* Train.data has the last variable 'Loan_status' that has either 'Y' or 'N' to indicate the success of a loan.  
+* The 'Loan_Amount_Term', which is the length of time a loan is to be completely paid off, has repeated levels. For example, the replication of 360. It may indicate that this variable has categorical nature and should be converted in factor type. 
 
 ```{r}
 str(train.data)
@@ -92,8 +93,12 @@ str(test.data)
 
 To detect missing values (NA), 
 
-* In the train.data, the dataset is quite complete (checking on the **n_missing** and **complete_rate**). There are 8 character variables without any missing value as indicated by NA. However, there are 3 numerical variables out of 5 have a little bit of missing values in the variable **LoanAmount**, **Loam_Amount_Term**, and **credit_History**. These missing value will be dealt with during data cleaning. 
-
+* In the train.data,  
+  * There are 8 character and 5 numerical variables.
+  * The dataset is quite complete (checking on the **n_missing** and **complete_rate**).   
+  * There are many variables with a few missing values, and they have complete_rate higher 90%.  
+  * The variable **Credit_History** is either 1 or 0, which is a binary variable and should be converted into factor during data cleaning. 
+  
 ```{r}
 skim_without_charts(train.data)
 
@@ -104,14 +109,85 @@ skim_without_charts(train.data)
 skim_without_charts(test.data)
 
 ```
-
 ## 5 DATA CLEANING
 
-Since 
+### 5.1 Train.data 
+
+#### 5.1.1 Remove ID and factor conversion
+
+First, I will remove the "Loan_ID" and convert all character variables into factor because they are cateogorical variable. 
+
+Converting variables into factors will help my analysis because it gives the data a grouping features which will enable useful R function as well as visualisation in later stage. 
+
+```{r}
+
+train.data <- train.data %>% 
+  select(-Loan_ID) %>%     # Remove Loan_ID
+  mutate_if(is_character, as.factor) %>%    # Convert all character into factor.
+  mutate(Credit_History = as.factor(Credit_History))
+
+```
+
+After converting categorical variables into factor, following function help to summarise the dataset.  
+
+```{r}
+
+summary(train.data)
+
+```
+I see that missing values (NA's) present in Gender, Married, Dependents, Self_Employed, LoanAmount and Loan_Amount_Term.
+
+#### 5.1.2 Replace NA in Factor
+
+For categorical variables with missing values, I replace these missing values with the level of mode (The most frequently appear category).    
+
+```{r}
+train.data <- train.data %>% 
+  mutate(Gender = replace_na(Gender, "Male"),
+         Married = replace_na(Married, "Yes"),
+         Dependents = replace_na(Dependents, '0'),
+         Self_Employed = replace_na(Self_Employed, 'No'))
+  
+summary(train.data)
+
+```
+Now the missing values (NAs) in Gender, Married, Dependents and Self-Employed have been filled up with the most possible level (the category that appears the most). 
+
+Regarding the NA in 50, by the rule of thumb if 
+
+```{r}
+
+```
 
 
 
-### Data type conversion 
+#### 5.1.2 Replace NA in Factor
+
+Following code will 
+
+```{r, width = 12}
+
+par(mfrow = c(1, 3))
+
+hist(train.data[,8], main = "LoanAmount")
+hist(train.data[,9], main = "Loan_Amount_Term")
+plot(train.data[,10], main = "Credit_History")
+
+```
+
+```{r}
+df <- train.data %>% 
+  mutate(Loan_Amount_Term = as.factor(Loan_Amount_Term)) %>% 
+  rename("Loan_amount" = Loan_Amount_Term) %>% 
+  select(Loan_amount, Loan_Status)
+
+summary(df)
+
+```
+
+
+
+
 
 
 ## Exploratory Data Analysis
