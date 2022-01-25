@@ -1,0 +1,122 @@
+---
+title: "loan"
+author: "Kar Ng"
+date: "1/24/2022"
+output: 
+  github_document: 
+    toc: true
+    toc_depth: 4
+always_allow_html: yes
+---
+
+***
+
+
+***
+
+
+## 1 SUMMARY
+
+
+
+
+## 2 R PACKAGES
+
+```{r}
+library(tidyverse)
+library(skimr)
+library(caret)
+library(kableExtra)
+
+```
+
+## 3 INTRODUCTION
+
+It is a machine learning project to demonstrate my technical experiences. This project uses datasets that are related to loan borrowing. 
+
+I will use statistical modeling in machine learning to study the datasets and to extract important variables that are related to loan approval by the loan provider. I will also create predictive models that are able to make accurate prediction when new data are coming.
+
+Information to be analysed include gender, marital status, number of dependents, education level, self employment, applicant income, co-applicant income, loan amount, loan amount term, credit history, and area of respondents' property. 
+
+Two datasets are given, one is named 'train.data' and the another named 'test.data'. Both datasets have same information but the train.data has one more variable 'loan status', which contains the loan results.
+
+There will be 3 datasets involved in this project. During modeling, I will split the train.data into two sbuject, one is a smaller subset with a name **"train_set"** and another named **"test_set"**. The **train_set** will be used to make various models and the **test_set** will be used to evaluate these models.
+
+Ultimately, the best model will be used to predict the 'test.data'. 
+
+
+
+## 4 DATA PREPARATION
+
+Data is downloaded from the [Kaggle](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset). Two datasets are downloaded, a train and a test data.
+
+### 4.1 Data import
+
+The train and the test data are imported in following code chunk.
+
+```{r}
+train.data <- read.csv("train_loan.csv")
+test.data <- read.csv("test_loan.csv")
+
+```
+
+### 4.2 Data exploration
+
+There are 13 variables for the train.data and 12 variables for the test.data. Both dataset have similar variable, however there is an additional variable in train.data, the "Loan_Status" which records the loan outcome. Test.data is the dataset that requiring me to make prediction using the train.data. 
+
+Following show the first 6 rows of the train.data and the test.data.
+
+```{r}
+head(train.data)
+
+```
+
+```{r}
+head(test.data)
+     
+```
+From structural analysis, 
+
+* There are 614 observations (rows) in the train.data dataset and 367 observations in the test.data dataset.    
+* Train.data has the last variable 'Loan_status' that has either 'Y' or 'N' to indicate the success of a loan.
+
+```{r}
+str(train.data)
+
+```
+
+```{r}
+str(test.data)
+
+```
+
+To detect missing values (NA), 
+
+* In the train.data, the dataset is quite complete (checking on the **n_missing** and **complete_rate**). There are 8 character variables without any missing value as indicated by NA. However, there are 3 numerical variables out of 5 have a little bit of missing values in the variable **LoanAmount**, **Loam_Amount_Term**, and **credit_History**. These missing value will be dealt with during data cleaning. 
+
+```{r}
+skim_without_charts(train.data)
+
+```
+* The same situation goes to the test.data dataset. 
+
+```{r}
+skim_without_charts(test.data)
+
+```
+
+## 5 DATA CLEANING
+
+Since 
+
+
+
+### Data type conversion 
+
+
+## Exploratory Data Analysis
+
+### 6 REFERENCE
+
+
+https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset
