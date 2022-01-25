@@ -154,6 +154,9 @@ train.data <- train.data %>%
 summary(train.data)
 
 ```
+
+**Credit History**
+
 Regarding the NA in credit history, I found that the 50 NA is too many (8%), and is quite close to 89 of "0". I decided to make it a new level. 
 
 ```{r}
@@ -161,18 +164,92 @@ Regarding the NA in credit history, I found that the 50 NA is too many (8%), and
 
 ```
 ```{r}
+train.data <- train.data %>% 
+  mutate(Credit_History = as.character(Credit_History),
+         Credit_History = replace_na(Credit_History, "Not_sure"),
+         Credit_History = as.factor(Credit_History))
+```
+
+
+**LoanAmount**
+
+There are 22 missing values out from 614 rows of data, which is only 3.5%. I will remove these missing values. According to Schafer (1999), the paper asserted that a missing rate of 5% or less is inconsequential.
+
+```{r}
+22/614 * 100
+```
+```{r}
+train.data <- train.data %>% na.omit()
+
+```
+
+### 5.2 Test data 
+
+#### 5.1.1 Remove ID and factor conversion
+
+Same process applies to test data. 
+
+```{r}
+
+test.data <- test.data %>% 
+  select(-Loan_ID) %>%                                    # Remove Loan_ID 
+  mutate_if(is_character, as.factor) %>%                  # Convert all character into factor.
+  mutate(Credit_History = as.factor(Credit_History),      # Convert Credit_History into factor.
+         Loan_Amount_Term = as.factor(Loan_Amount_Term))  # Convert Loan_Amount_Term into factor.
+
+summary(test.data)
+
+```
+#### 5.1.2 Replacing NA
+
+```{r}
+test.data <- test.data %>% 
+  mutate(Gender = replace_na(Gender, "Male"),
+         Dependents = replace_na(Dependents, '0'),
+         Self_Employed = replace_na(Self_Employed, 'No'),
+         Loan_Amount_Term = replace_na(Loan_Amount_Term, '360'))
+  
+summary(test.data)
+
+```
+
+**Credit History**
+
+For credit history, I will transfer 29 of "NA" to "1", because it is very likely that all these 29 NA are actually 1  because 1 is the most occuring category of that variable.  
+
+```{r}
+test.data <- test.data %>% 
+  mutate(Credit_History = as.character(Credit_History),
+         Credit_History = replace_na(Credit_History, "1"),
+         Credit_History = as.factor(Credit_History))
+
+summary(test.data)
+
+```
+
+**Loan Amount**
+
+There are only 5 NA in the variable, I will remove these missing values. 
+
+```{r}
+test.data <- test.data %>% 
+  na.omit()
+
+```
+Both datasets have now been cleaned and are ready for analysis. 
+
+## 6 Exploratory Data Analysis (EDA)
+
+This section will use the **train.data** dataset to understand the relationship of various variable with the loan status. 
+
+```{r}
 names(train.data)
 ```
-
-
 ```{r}
-train.data2 <- train.data %>% 
-  mutate(Credit_History = replace_na(Credit_History, "3"))
 
-```
-
-```{r}
-summary(train.data2)
+ggplot(train.data, aes(x = Gender)) +
+  geom_bar() +
+  facet_wrap(~Loan_Status)
 
 ```
 
@@ -180,7 +257,11 @@ summary(train.data2)
 
 
 
-### 6 REFERENCE
+
+
+
+
+##  REFERENCE
 
 
 https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset
