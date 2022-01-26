@@ -109,7 +109,7 @@ skim_without_charts(train.data)
 skim_without_charts(test.data)
 
 ```
-## 5 DATA CLEANING
+## 5 DATA CLEANING AND MANIPULATION
 
 ### 5.1 Train.data 
 
@@ -236,20 +236,170 @@ test.data <- test.data %>%
   na.omit()
 
 ```
+
 Both datasets have now been cleaned and are ready for analysis. 
+
+
+### 5.3 Feature Engineering
+
+This section creates new variables based on original variables. 
+
+1. total_income
+
+This is synthesised by adding "ApplicantIncome" and "CoapplicantIncome" to find the total income of an applicant. 
+
+```{r}
+train.data <- train.data %>% 
+  mutate(total_income = ApplicantIncome + CoapplicantIncome) %>% 
+  relocate(total_income, .after = CoapplicantIncome)
+
+```
+
+2. Loan_Amt_per_term
+
+This is synthesised by dividing "LoanAmount" with "Loan_Amount_Term" to, interestingly, find out would the loan amount with the unit of per month affect the approval of a loan application. 
+
+```{r}
+train.data <- train.data %>% 
+  mutate(Loan_Amt_per_term = round(LoanAmount/as.numeric(Loan_Amount_Term), 2)) %>% 
+  relocate(Loan_Amt_per_term, .after = Loan_Amount_Term)
+
+```
+
 
 ## 6 Exploratory Data Analysis (EDA)
 
-This section will use the **train.data** dataset to understand the relationship of various variable with the loan status. 
+In this section, I will use the **train.data** dataset to analyse general trends in the dataset because **train.data** has "Loan_Status" which is the responding variable. The relationship between Loan_Status with various variables in the dataset will be studied.
 
 ```{r}
 names(train.data)
+
 ```
+This exploratory data analysis will serve as a tool to understand the general trends underneath the data before getting into machine learning and statistical modeling.
+
+### 6.1 Overall Approval Rate 
+
+Most of the applications were approved from the train dataset were approved. 411 applications (70%) were approved, denoted with the symbol "Y"， whereas 181 of applications (30%) were rejected, denoted by "N".
+
+The loan status is the responding variable of this analysis and therefore the unbalanced sample size from both "Y" and "N" may badly affect the predictive model (sensitivity and specificity) built in the later machine learning section. It is a good note here and will be considered during models building and evaluation.
+
+```{r, message=FALSE, warning=FALSE}
+
+# set up dataframe
+
+df6.1.1 <- train.data %>% 
+  select(Loan_Status) %>% 
+  group_by(Loan_Status) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  mutate(total = sum(count),
+         per = round(count/total, 1))
+
+# plot
+
+ggplot(df6.1.1, aes(x = "", y = count, fill = Loan_Status)) +
+  geom_bar(stat = 'identity') +
+  coord_polar(theta = "y", start = 0) +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(hjust = 0.5,
+                                  face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  geom_label(aes(label = paste0(Loan_Status, "\n", count, " (", per*100, " %)")),
+             position = position_stack(vjust = 0.5),
+             size = 4) +
+  labs(title = "70% Of Applications have been Approved",
+       subtitle = "(Train data)")
+
+```
+
+### 6.2 Gender vs Approval Rate 
+
+It will be interesting to see the number of female and male applicants and would gender affect loan approval. Data shows that:
+
+* There were lesser female applicants (109) than male applicants (483).
+
+* However, the loan success rate of both gender are the same, both arrive at 70%. 
+
+```{r, fig.width = 8, message=FALSE}
+
+# set up dataframe
+
+df6.1.2 <- train.data %>% 
+  select(Loan_Status, Gender) %>% 
+  group_by(Loan_Status, Gender) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  group_by(Gender) %>% 
+  mutate(total = sum(count),
+         per = round(count/total, 1))
+
+# plot
+
+ggplot(df6.1.2, aes(x = "", y = count, fill = Loan_Status)) +
+  geom_bar(stat = 'identity') +
+  coord_polar(theta = "y", start = 0) +
+  theme_minimal() +
+  theme(axis.title = element_blank(),
+        legend.position = "none",
+        plot.title = element_text(hjust = 0.5,
+                                  face = "bold"),
+        plot.subtitle = element_text(hjust = 0.5)) +
+  geom_label(aes(label = paste0(Loan_Status, "\n", count, " (", per*100, " %)")),
+             position = position_stack(vjust = 0.5),
+             size = 4) +
+  labs(title = "Both Gender have similar proportion",
+       subtitle = "(Train data)") +
+  facet_wrap(~ Gender)
+
+
+```
+Female Applicants:
+
+```{r}
+73+36
+```
+Male Applicants:
+
+```{r}
+145+338
+```
+
+
+
+### 6.2 Gender, Applicant Income, and Loan_Status
+
+*Insights*
+
+* For Female applicants, both approved and rejected applicants have similar primary applicant incomes.
+* For Male applicants, both approved and rejected applicants have similar primary applicant incomes.
+* There are more male applicants than female.
+* As indicated by overlapping of all 4 boxplots and the medians, there is no obvious income different between both genders. 
+
+The approval of loan seems do not affected obviously by applicant income. The income of co-applicant or the combination my have an effect. 
+
 ```{r}
 
-ggplot(train.data, aes(x = Gender)) +
-  geom_bar() +
-  facet_wrap(~Loan_Status)
+ggplot(train.data, aes(x = Loan_Status, y = log(ApplicantIncome), colour = Loan_Status)) +
+  geom_jitter(size = 2, alpha = 0.5, alpha = 0.8) + 
+  geom_boxplot(outlier.shape = NA, colour = "black", alpha = 0) +
+  facet_wrap(~Gender) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 15, colour = "white"),
+        strip.background = element_rect(fill = "grey20"),
+        plot.title = element_text(size = 15, face = 'bold'),
+        legend.position = "NA") +
+  labs(x = "Loan Status", 
+       y = "Applicant Income (log10)",
+       title = "Gender and Applicant Income on Loan Approval") 
+
+
+```
+
+
+```{r}
+(21+9)/155
 
 ```
 
@@ -258,6 +408,15 @@ ggplot(train.data, aes(x = Gender)) +
 
 
 
+## Machine Learning
+
+### Oversampling  
+
+
+```{r}
+library(rose)
+
+```
 
 
 
