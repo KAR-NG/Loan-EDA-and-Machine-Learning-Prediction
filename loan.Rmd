@@ -280,7 +280,7 @@ This variable is created based on how many incomers in an application. Two level
 * "Both": Both the primary applicant and co-applicant have incomes
 
 ```{r}
-train.set <- train.set %>% 
+train.data <- train.data %>% 
   mutate(Income_provider = case_when(CoapplicantIncome == 0 ~ "Applicant",
                                      ApplicantIncome == 0 ~ "Co-applicant",
                                      TRUE ~ "Both"),
@@ -489,7 +489,14 @@ Interestingly, results show that regardless of whether the income is based on or
 It indicates that the criteria of loan approval is not merely based on income. 
 
 
-### 6.4 
+### 6.4 Number of incomers
+
+
+```{r}
+train.set
+
+```
+
 
 
 
