@@ -27,6 +27,8 @@ library(tidyverse)
 library(skimr)
 library(caret)
 library(kableExtra)
+library(glmnet)
+library(MASS)
 
 ```
 
@@ -122,7 +124,7 @@ Converting variables into factors will help my analysis because it gives the dat
 ```{r}
 
 train.data <- train.data %>% 
-  select(-Loan_ID) %>%                                    # Remove Loan_ID 
+  dplyr::select(-Loan_ID) %>%                                    # Remove Loan_ID 
   mutate_if(is_character, as.factor) %>%                  # Convert all character into factor.
   mutate(Credit_History = as.factor(Credit_History),      # Convert Credit_History into factor.
          Loan_Amount_Term = as.factor(Loan_Amount_Term))  # Convert Loan_Amount_Term into factor.
@@ -192,7 +194,7 @@ Same process applies to test data.
 ```{r}
 
 test.data <- test.data %>% 
-  select(-Loan_ID) %>%                                    # Remove Loan_ID 
+  dplyr::select(-Loan_ID) %>%                                    # Remove Loan_ID 
   mutate_if(is_character, as.factor) %>%                  # Convert all character into factor.
   mutate(Credit_History = as.factor(Credit_History),      # Convert Credit_History into factor.
          Loan_Amount_Term = as.factor(Loan_Amount_Term))  # Convert Loan_Amount_Term into factor.
@@ -242,9 +244,11 @@ Both datasets have now been cleaned and are ready for analysis.
 
 ### 5.3 Feature Engineering
 
-This section creates new variables based on original variables. 
+**On Train.data**
 
-1. total_income
+This section creates 3 new variables based on original variables. 
+
+1. total_income (Applicant Income + Co-applicant income)
 
 This is synthesised by adding "ApplicantIncome" and "CoapplicantIncome" to find the total income of an applicant. 
 
@@ -255,7 +259,7 @@ train.data <- train.data %>%
 
 ```
 
-2. Loan_Amt_per_term
+2. Loan_Amt_per_term (Loan/month)
 
 This is synthesised by dividing "LoanAmount" with "Loan_Amount_Term" to, interestingly, find out would the loan amount with the unit of per month affect the approval of a loan application. 
 
@@ -263,6 +267,61 @@ This is synthesised by dividing "LoanAmount" with "Loan_Amount_Term" to, interes
 train.data <- train.data %>% 
   mutate(Loan_Amt_per_term = round(LoanAmount/as.numeric(Loan_Amount_Term), 2)) %>% 
   relocate(Loan_Amt_per_term, .after = Loan_Amount_Term)
+
+```
+
+
+3. Income provider (one incomer or two)
+
+This variable is created based on how many incomers in an application. Two levels have been detected for this new variable:
+
+* "Applicant": Only the primary applicant has income
+
+* "Both": Both the primary applicant and co-applicant have incomes
+
+```{r}
+train.set <- train.set %>% 
+  mutate(Income_provider = case_when(CoapplicantIncome == 0 ~ "Applicant",
+                                     ApplicantIncome == 0 ~ "Co-applicant",
+                                     TRUE ~ "Both"),
+         Income_provider = as.factor(Income_provider)) %>% 
+  relocate(Income_provider, .after = total_income)
+
+```
+
+**On Test.data**
+
+The same operation applies to test.data.
+
+
+1. total_income
+
+```{r}
+test.data <- test.data %>% 
+  mutate(total_income = ApplicantIncome + CoapplicantIncome) %>% 
+  relocate(total_income, .after = CoapplicantIncome)
+
+```
+
+2. Loan_Amt_per_term
+
+```{r}
+test.data <- test.data %>% 
+  mutate(Loan_Amt_per_term = round(LoanAmount/as.numeric(Loan_Amount_Term), 2)) %>% 
+  relocate(Loan_Amt_per_term, .after = Loan_Amount_Term)
+
+```
+
+
+3. Income provider (one incomer or two)
+
+```{r}
+test.data <- test.data %>% 
+  mutate(Income_provider = case_when(CoapplicantIncome == 0 ~ "Applicant",
+                                     ApplicantIncome == 0 ~ "Co-applicant",
+                                     TRUE ~ "Both"),
+         Income_provider = as.factor(Income_provider)) %>% 
+  relocate(Income_provider, .after = total_income)
 
 ```
 
@@ -288,7 +347,7 @@ The loan status is the responding variable of this analysis and therefore the un
 # set up dataframe
 
 df6.1.1 <- train.data %>% 
-  select(Loan_Status) %>% 
+  dplyr::select(Loan_Status) %>% 
   group_by(Loan_Status) %>% 
   summarise(count = n()) %>% 
   ungroup() %>% 
@@ -298,7 +357,7 @@ df6.1.1 <- train.data %>%
 # plot
 
 ggplot(df6.1.1, aes(x = "", y = count, fill = Loan_Status)) +
-  geom_bar(stat = 'identity') +
+  geom_bar(stat = 'identity', colour = "black") +
   coord_polar(theta = "y", start = 0) +
   theme_minimal() +
   theme(axis.title = element_blank(),
@@ -310,24 +369,24 @@ ggplot(df6.1.1, aes(x = "", y = count, fill = Loan_Status)) +
              position = position_stack(vjust = 0.5),
              size = 4) +
   labs(title = "70% Of Applications have been Approved",
-       subtitle = "(Train data)")
+       subtitle = "(Train data)")  
 
 ```
 
-### 6.2 Gender vs Approval Rate 
+### 6.2 Would Gender affect Loan Approval
 
 It will be interesting to see the number of female and male applicants and would gender affect loan approval. Data shows that:
 
 * There were lesser female applicants (109) than male applicants (483).
 
-* However, the loan success rate of both gender are the same, both arrive at 70%. 
+* However, the loan success rate of both gender are the same, both arrived at 70%. There is no detection of gender bias from the dataset. 
 
 ```{r, fig.width = 8, message=FALSE}
 
 # set up dataframe
 
 df6.1.2 <- train.data %>% 
-  select(Loan_Status, Gender) %>% 
+  dplyr::select(Loan_Status, Gender) %>% 
   group_by(Loan_Status, Gender) %>% 
   summarise(count = n()) %>% 
   ungroup() %>% 
@@ -338,7 +397,7 @@ df6.1.2 <- train.data %>%
 # plot
 
 ggplot(df6.1.2, aes(x = "", y = count, fill = Loan_Status)) +
-  geom_bar(stat = 'identity') +
+  geom_bar(stat = 'identity'， colour = "black") +
   coord_polar(theta = "y", start = 0) +
   theme_minimal() +
   theme(axis.title = element_blank(),
@@ -348,7 +407,7 @@ ggplot(df6.1.2, aes(x = "", y = count, fill = Loan_Status)) +
         plot.subtitle = element_text(hjust = 0.5)) +
   geom_label(aes(label = paste0(Loan_Status, "\n", count, " (", per*100, " %)")),
              position = position_stack(vjust = 0.5),
-             size = 4) +
+             size = 3) +
   labs(title = "Both Gender have similar proportion",
        subtitle = "(Train data)") +
   facet_wrap(~ Gender)
@@ -364,63 +423,314 @@ Male Applicants:
 
 ```{r}
 145+338
+
+```
+
+### 6.3 Income and Loan Approval
+
+There are three type of income categories to be analysed, which are:
+
+* "ApplicantIncome" - the income of the primary applicant  
+* "CoapplicantIncome" - the income of co-applicant  
+* "total_income" - the total income of both primary applicant and co-applicant  
+
+```{r, fig.width=8, fig.height=7}
+
+# set up dataframe
+
+df6.2 <- train.data %>% 
+  dplyr::select(ApplicantIncome, CoapplicantIncome, total_income, Loan_Status) %>% 
+  pivot_longer(c(1:3), names_to = "cat", values_to = "income") 
+
+# plot
+
+p1 <- ggplot(df6.2, aes(x = Loan_Status, y = income, shape = Loan_Status, colour = Loan_Status)) +
+  geom_jitter(alpha = 0.5) + 
+  geom_boxplot(alpha = 0,
+               outlier.shape = NA,
+               color = "black") +
+  facet_wrap(~cat) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.position = "none") +
+  labs(x = "Loan Status",
+       title = "Income Category vs Loan Status")
+
+p2 <- ggplot(df6.2, aes(x = Loan_Status, y = log(income), shape = Loan_Status, colour = Loan_Status)) +
+  geom_jitter(alpha = 0.5) + 
+  geom_boxplot(alpha = 0,
+               outlier.shape = NA,
+               color = "black") +
+  facet_wrap(~cat) +
+  theme_bw() +
+  theme(strip.text = element_text(size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.position = "none")+
+  labs(x = "Loan Status",
+       title = "Logged Income Category vs Loan Status")
+
+library(ggpubr)
+
+ggarrange(p1, p2, 
+          nrow = 2, 
+          ncol = 1,
+          labels =c("A", "B"))
+
+```
+
+I hypothesise that whoever have higher income, will have application approved, therefore, the boxplot of "Y" should be at a higher position than "N". 
+
+Interestingly, results show that regardless of whether the income is based on original scale or log transformed, 
+
+* all three income data has no obvious impact on loan approval.   
+* Boxplots of 3 type of incomes "ApplicantIncome", "CoapplicantIncome" and "total_income" overlap with each other near perfectly. "Note: total_income is the combination of income from applicant and co-applicant."  
+
+It indicates that the criteria of loan approval is not merely based on income. 
+
+
+### 6.4 
+
+
+
+### 6.5 Marrital Status, Depedents and Education 
+
+This section studies the effect of marital status, numbers of dependents, and education levels of an applicant on his/her loan status in the train.data dataset.
+
+Results show that:
+
+* There is no obvious trend for the number of dependents on loan approval.   
+* 8% more applicants with graduate education level had their loan application approved.   
+* 9% more applicants with a married status had their loan approved.   
+
+
+```{r, fig.width=9, fig.height=7}
+# set up df
+
+df6.4 <- train.data %>% 
+  dplyr::select(Married, Dependents, Education, Loan_Status) %>% 
+  pivot_longer(c(1:3), names_to = "variables", values_to = "values") %>% 
+  group_by(Loan_Status, variables, values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  group_by(variables, values) %>% 
+  mutate(total = sum(count),
+         per = paste0(round(count/total,2)*100, "%"),
+         lab = paste0(values, "\n", "n = (", total, ")"))
+
+# plot
+
+ggplot(df6.4, aes(x = lab, y = count, fill = Loan_Status)) +
+  geom_histogram(stat = "identity", position = "fill") +
+  facet_wrap(~variables, scale = "free") +  
+  theme_bw() +
+  theme(strip.text = element_text(size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.position = "top",
+        axis.title.x = element_text(margin = margin(8, 0, 0, 0)))+
+  labs(x = "Loan Status",
+       y = " ",
+       title = "Dependents, Education, and Marrital Status on Loan Status") +
+  geom_label(aes(label = per), 
+             position = "fill", 
+             vjust = 2) 
+
 ```
 
 
+### 6.6 Credit_History, Property_Area, Self_Employed
 
-### 6.2 Gender, Applicant Income, and Loan_Status
+Insights show that:
+
+* If an applicant does not have credit history, 90% of the chance that his/her application would be rejected. Credit history will help tremendous in getting loan application approved.
+
+* There are 3 different types of property area, semiurban has the highest approval rate (77%), followed by urban at 68%, and lastly semi-urban at 62%. 
+
+* Self-employment would not affect the success rate of loan approval.
+
+```{r, fig.width=9, fig.height=7}
+# Set up dataframe
+
+df6.5 <- train.data %>% 
+  dplyr::select(Self_Employed, Credit_History, Property_Area, Loan_Status) %>% 
+  pivot_longer(c(1:3), names_to = "variables", values_to = "values") %>% 
+  group_by(Loan_Status, variables, values) %>% 
+  summarise(count = n()) %>% 
+  ungroup() %>% 
+  group_by(variables, values) %>% 
+  mutate(total = sum(count),
+         per = paste0(round(count/total,2)*100, "%"),
+         lab = paste0(values, "\n", "n = (", total, ")"))
+
+# plot
+
+ggplot(df6.5, aes(x = lab, y = count, fill = Loan_Status)) +
+  geom_histogram(stat = "identity", position = "fill") +
+  facet_wrap(~variables, scale = "free") +  
+  theme_bw() +
+  theme(strip.text = element_text(size = 14),
+        plot.title = element_text(face = "bold"),
+        legend.position = "top",
+        axis.title.x = element_text(margin = margin(8, 0, 0, 0)))+
+  labs(x = "Loan Status",
+       y = " ",
+       title = "Self-Employed, Credit History, and Property Area on Loan Status") +
+  geom_label(aes(label = per), 
+             position = "fill", 
+             vjust = 1.5) 
+
+```
+
+
+### 6.7 EDA summary
+
+From the exploratory data analysis, there are some visual trends in education status, marital status and property area that they may impact the approval of a loan application. The most obvious limiting factor is whether the applicant has previous credit history. 
+
+Apart from the above visualisation analysis, Statistical modeling (machine learning) will be carried out to help extract the inner trends in the data and ultimately build an effective model to predict the imported test.data dataset.
+
+
+## 7 Machine Learning
+
+### 7.1 Data partitioning
+
+There are two datasets imported, the **train.data** and the **test.data**. However, only the **train.data** datasets have the responding variable, **Loan_Status**. Therefore, my strategies will be:
+
+* Split the train.data dataset into proportioned **train.set** and **test.set**. This test.set will be used to assessing models built from the **train.set**.
+
+* Lastly, the best model will be used to predict the **test.data**.
+
+There are several ratio options for data partitioning, such as 50:50, 60:40, or 80:20 split of the data into train and test set. Most popular ranges are 40:60, 30:70, and 20:80, and usually one can pick the 30:70 as it is in the "median" position. 
+
+However, data partitioning is largely depends on how much data we have. We should try our best to ensure there is enough data to train an effective model as well as enough data for the test set to assess the performance of the model. 
+
+I am going for 70:30 split of the train.data into train and test set to ensure there is sufficient enough for the test set for model evaluation purpose. 
+
+```{r}
+set.seed(123)
+
+# Data partitioning
+
+ind <- train.data$Loan_Status %>% createDataPartition(list = F, p = 0.7)
+
+# train test split
+
+train.set <- train.data[ind, ]
+test.set <- train.data[-ind, ]
+
+```
+
+The train.data is a small dataset consisting only 592 rows of observation, and data partition splits it into 70% of train.set with 415 rows of observation (~70%) and 177 rows of observation (~30%).
+
+Data size of **train.set**: 
+
+```{r}
+dim(train.set)[1]
+
+```
+Data size of **test.set**: 
+
+```{r}
+dim(test.set)[1]
+
+```
+The test set has 54 and 123 of "N" and "Y". There would be a little concern for "N" as its data size is not very large and therefore specificity of the model built would be affected, however, it will only be confirmed after building and test the model. 
+
+```{r}
+
+table(test.set$Loan_Status)
+
+```
+
+### 7.2 About Modeling 
+
+It should be aware that no model is 100% accurate in machine learning. Therefore, different models are generally built based on different algorithms to search for the model that can do the best job in prediction. 
+
+
+
+### 7.3 Logistic Regression
+
+This project faces a binary / binomial problem which means the responding variable has only 2 values, which is either yes or no. Logistic regression will be applied. Logistic regression can also be used for multinomial situation where responding variable has more than 2 levels. 
+
+For logistic regression, it is not required to test the linear relationship between predictors and the responding variable, and therefore the normality of error terms.
+
+Following show the results of a binomial logistic regression model with a 10-fold cross validation (cv )and a cv repetation of 3 times. 
+
+```{r, warning=FALSE}
+model_lo <- train(Loan_Status ~ ., 
+                        data = train.set,
+                        method = "glm",
+                        family = "binomial",
+                        trControl = trainControl(method = "repeatedcv",
+                                                 number = 10,
+                                                 repeats = 3))
+
+summary(model_lo)
+
+```
 
 *Insights*
 
-* For Female applicants, both approved and rejected applicants have similar primary applicant incomes.
-* For Male applicants, both approved and rejected applicants have similar primary applicant incomes.
-* There are more male applicants than female.
-* As indicated by overlapping of all 4 boxplots and the medians, there is no obvious income different between both genders. 
+* Results show that variable **total_income** and the level "480" in the variable **Loan_Amount_per_term** are redundant because all other variable have provided sufficient information at 100% level in explaining the variability in the responding variables. 
 
-The approval of loan seems do not affected obviously by applicant income. The income of co-applicant or the combination my have an effect. 
+* The model shows that most variables are not significantly related to the loan status (which is the responding variable), except for credit history and property area. 
+
+* When there is credit history of "1" or "not sure", the log odds of loan approval go up in a positive significant way. 
+
+* Semi-urban property area contribute to the log odd of loan approval positively.
+
+Therefore, a new model is build with only credit history and property area. The result is shown below. 
+
+```{r}
+model_lo2 <- train(Loan_Status ~ Credit_History + Property_Area, 
+                        data = train.set,
+                        method = "glm",
+                        family = "binomial",
+                        trControl = trainControl(method = "repeatedcv",
+                                                 number = 10,
+                                                 repeats = 3))
+
+summary(model_lo2)
+  
+```
+"Urban" of property area cannot be removed because it is part of levels of the "Property_Area". 
+
+**Prediction on Train Set to detect overfitting**
+
+This result is used to compare with prediction results on test set, there would be overfitting if there is a large difference in performance between the both sets. 
+
+```{r}
+pred <- model_lo2 %>% predict(train.set, type = 'raw')  
+confusionMatrix(pred, train.set$Loan_Status, positive = "Y") 
+```
+
+*Insights*
+
+* The accuracy rate is very high at 81.2%.  
+* The model has extremely good sensitivity (actual positive) at 98.6%.  
+* The model has very low specificity (actual positive) at 41.7%.  
+* "No Information Rate" is 69% which is lower than the accuracy rate as well as outside of the range of 95% CI, it indicates that it is a useful model to use. 
+
+**Prediction with test data**
 
 ```{r}
 
-ggplot(train.data, aes(x = Loan_Status, y = log(ApplicantIncome), colour = Loan_Status)) +
-  geom_jitter(size = 2, alpha = 0.5, alpha = 0.8) + 
-  geom_boxplot(outlier.shape = NA, colour = "black", alpha = 0) +
-  facet_wrap(~Gender) +
-  theme_bw() +
-  theme(strip.text = element_text(size = 15, colour = "white"),
-        strip.background = element_rect(fill = "grey20"),
-        plot.title = element_text(size = 15, face = 'bold'),
-        legend.position = "NA") +
-  labs(x = "Loan Status", 
-       y = "Applicant Income (log10)",
-       title = "Gender and Applicant Income on Loan Approval") 
+pred <- model_lo2 %>% predict(test.set, type = 'raw') 
 
+confusionMatrix(pred, test.set$Loan_Status, positive = "Y")
 
 ```
+*Insights*
 
+* Prediction on test set has accuracy of 81.9%, which is very close to the result of train set at 81.2%.  
+* Sensitivity (actual positive) is 97.6%, which is very close to the result of train set at 98.6%.  
+* Specificity (actual negative) is 46.3%, which is not too far away from the train set at 41.7%.   
+* "No Information Rate" is 69% which is lower than the accuracy rate as well as outside of the range of 95% CI, it indicates that it is a useful model to use.  
 
-```{r}
-(21+9)/155
+Base on the performance of the both models based on the train and the test sets, I say that there is no overfitting and the model is good to be used. However, specificity is 
 
-```
-
-
-
-
-
-
-## Machine Learning
-
-### Oversampling  
-
-
-```{r}
-library(rose)
-
-```
 
 
 
 ##  REFERENCE
-
 
 https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset
