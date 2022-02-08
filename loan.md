@@ -49,126 +49,78 @@ Kar Ng
 
 ------------------------------------------------------------------------
 
+![](https://raw.githubusercontent.com/KAR-NG/loan/main/thumbnail.jpg)
+
 ------------------------------------------------------------------------
 
 ## 1 SUMMARY
+
+This project studies the effects of various loan-related variables and
+their effect on loan approval. These variables include gender, marital
+status, dependents, education, employment status, applicant’s income,
+co-applicant’s income, loan amount, loan amount term, credit history and
+property area. During feature engineering, some new variables were
+synthesized such as total income (combination of applicant and
+co-applicant incomes), loan per month (Loan amount / term), and whether
+the number of income providers would help getting application approved.
+
+Exploratory data analysis shown that credit history is the most
+important variable among all variables. Among the approved applications,
+80% of applicants had credit history. Some other minor trends included
+that there are more male applicants than female but both gender have
+equal acceptance rate, education level may help a little with 8% higher
+in loan approved rate, married applicants may have 8% higher chance
+getting loan application approved, and an application that has two
+incomes (main applicant + co-applicant) would have higher chance getting
+application approved.
+
+Many models will also be built to search for the best model to make
+prediction on unknown dataset. This project will build a logistic
+regression, and focus on building tree algorithms included decision
+tree, bagging, random forest, and tuned extreme gradient boosting
+models. There is data unbalance problem in the dataset, “Both-sampling”
+was applied to under-sampling “Y” and over-sampling “N” in the
+responding variable “Loan-Status”.
+
+In statistical modeling, random forest model with ROC-suggested
+probability “Y” cutoff point at 0.523 outperformed all other models. The
+random forest model has an accuracy rate of 77.4%, a “No Information
+rate” lower than the minimum point of 95% CI, and the model had the
+smallest gap between sensitivity and specificity, both at 80.5% and
+70.3%. Random forest Important plots suggests that application with a
+credit history is most important, followed by applicant income, total
+income, loan amount per term and credit history with level “Not sure”.
+
+The random forest model with 0.523 probability “Y” cutoff point was
+applied to predict on an unknown dataset with 362 observations,
+predicted that 63% of application should be “Y” (at 80.5% of chance) and
+37% of application should be “N” (at 70.3% of chance).
+
+**Insights**
+
+![](https://raw.githubusercontent.com/KAR-NG/loan/main/Highlight.png)
 
 ## 2 R PACKAGES
 
 ``` r
 library(tidyverse)
-```
-
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-
-    ## v ggplot2 3.3.5     v purrr   0.3.4
-    ## v tibble  3.1.4     v dplyr   1.0.7
-    ## v tidyr   1.1.3     v stringr 1.4.0
-    ## v readr   2.0.1     v forcats 0.5.1
-
-    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 library(skimr)
 library(caret)
-```
-
-    ## Loading required package: lattice
-
-    ## 
-    ## Attaching package: 'caret'
-
-    ## The following object is masked from 'package:purrr':
-    ## 
-    ##     lift
-
-``` r
 library(kableExtra)
-```
-
-    ## 
-    ## Attaching package: 'kableExtra'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     group_rows
-
-``` r
 library(glmnet)
-```
-
-    ## Loading required package: Matrix
-
-    ## 
-    ## Attaching package: 'Matrix'
-
-    ## The following objects are masked from 'package:tidyr':
-    ## 
-    ##     expand, pack, unpack
-
-    ## Loaded glmnet 4.1-2
-
-``` r
 library(MASS)
-```
-
-    ## 
-    ## Attaching package: 'MASS'
-
-    ## The following object is masked from 'package:dplyr':
-    ## 
-    ##     select
-
-``` r
 library(pROC)
-```
-
-    ## Type 'citation("pROC")' for a citation.
-
-    ## 
-    ## Attaching package: 'pROC'
-
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     cov, smooth, var
-
-``` r
 library(rpart)
 library(rpart.plot)
 library(rattle)   # plot tree from caret
-```
-
-    ## Warning: package 'rattle' was built under R version 4.1.2
-
-    ## Loading required package: bitops
-
-    ## 
-    ## Attaching package: 'bitops'
-
-    ## The following object is masked from 'package:Matrix':
-    ## 
-    ##     %&%
-
-    ## Rattle: A free graphical interface for data science with R.
-    ## Version 5.4.0 Copyright (c) 2006-2020 Togaware Pty Ltd.
-    ## Type 'rattle()' to shake, rattle, and roll your data.
-
-``` r
 library(ggrepel)
 library(ROSE)
 ```
 
-    ## Warning: package 'ROSE' was built under R version 4.1.2
-
-    ## Loaded ROSE 0.0-4
-
 ## 3 INTRODUCTION
 
-It is a machine learning project to demonstrate my technical
-experiences. This project uses datasets that are related to loan
-borrowing.
+It is a machine learning project to demonstrate my technical skills.
+This project uses datasets that are related to loan borrowing.
 
 I will use statistical modeling in machine learning to study the
 datasets and to extract important variables that are related to loan
@@ -3543,20 +3495,15 @@ variable):
 From EDA:
 
 -   There are more male applicants than female but both genders have
-    equal approval-reject rate at 70%:30%.
-
+    equal approval-reject rate at 70%:30%.  
 -   From EDA, there is no clear trend that applicant income, coapplicant
-    income and total income impact the success rate of loan.
-
+    income and total income impact the success rate of loan.  
 -   However, if both applicant and the co-applicant of an application
     have incomes, it may help the application get an approved. In the
     approved application “Y”, there are 38% more application with
-    “dual-incomers” got their application approved.
-
--   Education may help a little, only 8% higher success rate.
-
--   9% higher success rate for married applicants.
-
+    “dual-incomers” got their application approved.  
+-   Education may help a little, only 8% higher success rate.  
+-   9% higher success rate for married applicants.  
 -   Applicants without credit history is highly likely get a rejection
     (only 8% succeeed). 80% of Applicants with a credit history got
     their application approved.
@@ -3578,7 +3525,7 @@ best performing metrics. Compared to other model:
 -   The gap between sensitivity and specificity is the smallest compared
     to other models built.
 
-The random forest model suggests  
+The random forest model suggests that,  
 \* Credit History,  
 \* applicant income,  
 \* total income (applicant income + co-applicant income)  
@@ -3591,4 +3538,5 @@ rejected and 63% (255) of the applications will be approved.
 
 ## 9 REFERENCE
 
+Chatterjee D 2019, Loan Prediction Problem, viewed 24 January 2022,
 <https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset>
