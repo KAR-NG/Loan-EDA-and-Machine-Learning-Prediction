@@ -1,4 +1,5 @@
 ---
+
 title: "Loan EDA and Machine Learning Prediction"
 author: "Kar Ng"
 date: "1/24/2022"
@@ -7,7 +8,9 @@ output:
     toc: true
     toc_depth: 4
 always_allow_html: yes
+
 ---
+
 
 ***
 
@@ -18,15 +21,15 @@ always_allow_html: yes
 
 ## 1 SUMMARY
 
-This project studies the effects of various loan-related variables and their effect on loan approval. These variables include gender, marital status, dependents, education, employment status, applicant's income, co-applicant's income, loan amount, loan amount term, credit history and property area. During feature engineering, some new variables were synthesized such as total income (combination of applicant and co-applicant incomes), loan per month (Loan amount / term), and whether the number of income providers would help getting application approved. 
+This project studies the effects of various loan-related variables and their effect on loan approval. These variables include gender, marital status, number of dependents, education level, employment status, applicant's income, co-applicant's income, loan amount, loan amount term, credit history, and property area. In feature engineering, three new variables were synthesised. They are total income (combination of applicant and co-applicant incomes), loan per month (loan amount / term), and whether the number of income providers in an application. 
 
-Exploratory data analysis shown that credit history is the most important variable among all variables. Among the approved applications, 80% of applicants had credit history. Some other minor trends included that there are more male applicants than female but both gender have equal acceptance rate, education level may help a little with 8% higher in loan approved rate, married applicants may have 8% higher chance getting loan application approved, and an application that has two incomes (main applicant + co-applicant) would have higher chance getting application approved.
+Exploratory data analysis shown that credit history is the most important variable. It found that 80% of approved applicants had credit history compared to 20% approved applicants did not have credit history. Some other minor trends included that (1) there are more male applicants than female but both gender have equal acceptance rate, (2) higher education level may help a little with a 8% more in approved application, (3) a married relationship may also help a little with also a 9% more in approved application, and (4) if an application has two incomes (from both applicant + co-applicant), the application may get a higher chance to be approved (40% more approved applications had dual-income).  
 
-Many models will also be built to search for the best model to make prediction on unknown dataset. This project will build a logistic regression, and focus on building tree algorithms included decision tree, bagging, random forest, and tuned extreme gradient boosting models. There is data unbalance problem in the dataset, "Both-sampling" was applied to under-sampling "Y" and over-sampling "N" in the responding variable "Loan-Status".
+Many models were built to search for the best model to make prediction on an unknown dataset. This project built a logistic regression model and many tree-based models included decision tree, bagging, random forest, and tuned extreme gradient boosting models. There was data unbalance problem in the dataset, and "Both-sampling" was applied to under-sample "Y" and over-sample "N" in the responding variable "Loan-Status" to solve the data unbalance problem.
 
-In statistical modeling, random forest model with ROC-suggested probability "Y" cutoff point at 0.523 outperformed all other models. The random forest model has an accuracy rate of 77.4%, a "No Information rate" lower than the minimum point of 95% CI, and the model had the smallest gap between sensitivity and specificity, both at 80.5% and 70.3%. Random forest Important plots suggests that application with a credit history is most important, followed by applicant income, total income, loan amount per term and credit history with level "Not sure". 
+In statistical modeling, random forest model with ROC-suggested probability "Y" cutoff point at 0.523 outperformed all other models. The random forest model has an accuracy rate of 77.4%, a "No Information rate" lower than the minimum point of 95% CI, and the model had the smallest gap between sensitivity and specificity, both at 80.5% and 70.3%. Random forest Important plots suggests that positive credit history is most important variable (supporting EDA), followed by applicant income, total income, loan amount per term, and credit history with level "Not sure". 
 
-The random forest model with 0.523 probability "Y" cutoff point was applied to predict on an unknown dataset with 362 observations, predicted that 63% of application should be "Y" (at 80.5% of chance) and  37% of application should be "N" (at 70.3% of chance).
+The random forest model with 0.523 probability "Y" cutoff point was applied to prediction loan application outcome on an unknown dataset。 The model predicted that 63% of application should be "Y" (at 80.5% of chance) and 37% of application should be "N" (at 70.3% of chance).
 
 **Insights**
 
@@ -34,6 +37,8 @@ The random forest model with 0.523 probability "Y" cutoff point was applied to p
 
 
 ## 2 R PACKAGES
+
+Following R packages are loaded. 
 
 ```{r, warning=FALSE, message=FALSE}
 library(tidyverse)
@@ -53,27 +58,26 @@ library(ROSE)
 
 ## 3 INTRODUCTION
 
-It is a machine learning project to demonstrate my technical skills. This project uses datasets that are related to loan borrowing. 
 
-I will use statistical modeling in machine learning to study the datasets and to extract important variables that are related to loan approval by the loan provider. I will also create predictive models that are able to make accurate prediction when new data are coming.
+This project uses datasets from [Kaggle.com](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset) that are related to loan application. *Kaggle.com* is a popular website for data science community. 
 
-Information to be analysed include gender, marital status, number of dependents, education level, self employment, applicant income, co-applicant income, loan amount, loan amount term, credit history, and area of respondents' property. 
+This project will study variables that are potentially related to loan application such as gender, marital status, number of dependents, education level, self employment, applicant income, co-applicant income, loan amount, loan amount term, credit history, and area of respondents' property. 
 
-Two datasets are given, one is named 'train.data' and the another named 'test.data'. Both datasets have same information but the train.data has one more variable 'loan status', which contains the loan results.
+Exploratory data analysis will be applied to study the general trends between these variables with the outcome variable "loan status". Statistical modeling will also be applied to study the data and to extract statistical important variables. Many models will be built and the best model will be used to predict application outcome of an unknown dataset. 
 
-There will be 3 datasets involved in this project. During modeling, I will split the train.data into two sbuject, one is a smaller subset with a name **"train_set"** and another named **"test_set"**. The **train_set** will be used to make various models and the **test_set** will be used to evaluate these models.
+Two datasets are given, one is named 'train.data' and the another named 'test.data'. Both datasets have same information but only the train.data has application outcome variable named 'loan status', which contains the loan results with either "Y" or "N". 
 
-Ultimately, the best model will be used to predict the 'test.data'. 
+During modeling, I will split the "train.data" into two smaller datasets, one is named **"train.set"** and another named **"test.set"**. The **train.set** will be used to make various models and the **test.set** will be used to evaluate these models. Finally, the best model will be applied to predict application outcome of the test.data dataset.
 
 
 
 ## 4 DATA PREPARATION
 
-Data is downloaded from the [Kaggle](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset). Two datasets are downloaded, a train and a test data.
+Data is downloaded from the [Kaggle](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset). Two datasets are downloaded, a train.data and a test.data dataset.
 
 ### 4.1 Data import
 
-The train and the test data are imported in following code chunk.
+
 
 ```{r}
 train.data <- read.csv("train_loan.csv", na.strings = c("", "NA"))
@@ -83,9 +87,9 @@ test.data <- read.csv("test_loan.csv", na.strings = c("", "NA"))
 
 ### 4.2 Data exploration
 
-There are 13 variables for the train.data and 12 variables for the test.data. Both dataset have similar variable, however there is an additional variable in train.data, the "Loan_Status" which records the loan outcome. Test.data is the dataset that requiring me to make prediction using the train.data. 
+There are 13 variables for the train.data and 12 variables for the test.data. Both dataset have similar variable, but as mentioned, only the train.data has the application outcome "Loan_Status". The test.data is the dataset that requiring me to make application outcome prediction.
 
-Following show the first 6 rows of the train.data and the test.data.
+Following is the first 6 rows of the train.data and the test.data.
 
 ```{r}
 head(train.data)
@@ -96,21 +100,25 @@ head(train.data)
 head(test.data)
      
 ```
-From structural analysis, 
+**Structural Analysis**
 
-* There are 614 observations (rows) in the train.data dataset and 367 observations in the test.data dataset.      
-* Train.data has the last variable 'Loan_status' that has either 'Y' or 'N' to indicate the success of a loan.  
-* The 'Loan_Amount_Term', which is the length of time a loan is to be completely paid off, has repeated levels. For example, the replication of 360. It may indicate that this variable has categorical nature and should be converted in factor type. 
+Train.data dataset:
 
 ```{r}
 str(train.data)
 
 ```
+Test.data dataset:
 
 ```{r}
 str(test.data)
 
 ```
+* There are 614 observations (rows) in the train.data dataset and 367 observations in the test.data dataset.      
+* The last variable 'Loan_status' of train.data dataset has two levels either 'Y' or 'N' to indicate application outcome of an applicant.    
+* The 'Loan_Amount_Term' is the length of time a loan is to be completely paid off. This variable has repeated levels. For example, there are many 360. It may indicate that this variable has categorical nature and should be converted in factor type. 
+
+**NA Analysis**
 
 To detect missing values (NA), 
 
@@ -134,11 +142,11 @@ skim_without_charts(test.data)
 
 ### 5.1 Train.data 
 
-#### 5.1.1 Remove ID and factor conversion
+#### 5.1.1 Removing ID and factor conversion
 
-First, I will remove the "Loan_ID" and convert all character variables into factor because they are categorical variable. I remove LOan_ID because it is meaningless for predictive analysis. 
+First, I will remove the "Loan_ID" and convert all character variables into factor because they are categorical variables. LOan_ID will be removed because it adds no value for prediction.
 
-Converting variables into factors will help my analysis because it gives the data a grouping features which will enable useful R function as well as visualisation in later stage. 
+Converting variables into factors will help the analysis because it gives the data a grouping features which will enable useful R functions and useful visualisation in later stage. 
 
 ```{r}
 
@@ -162,7 +170,7 @@ Many variables have missing values, as denoted by "NA's". Missing values will be
 
 #### 5.1.2 Replacing NA
 
-Following codes replace all the NA with respective mode, which is the most occurring category of variable they belong. It is a decision after carefully examining its feasibility, these missing values are less than 5%, and their respective most occurring category have frequencies that are way higher than the rest of the categories. 
+Following codes replace all the NAs with respective mode. "Mode" is the most occurring category of a variable. It is a decision made after carefully examining its feasibility, these missing values are less than 5%, and their respective most occurring category have frequencies that are way higher than the rest of the categories. Therefore, it is highly likely that these NAs may belong to the most occurring category.
 
 ```{r}
 train.data <- train.data %>% 
@@ -178,7 +186,7 @@ summary(train.data)
 
 **Credit History**
 
-Regarding the NA in credit history, I found that the 50 NA is too many (8%), and is quite close to 89 of "0". I decided to make it a new level. 
+Regarding the NA in the variable "credit history", I found that the 50 NA is too many (8%) and is quite close to the 89 observations of the category "0" (mean no credit history). I decided to make a new level named "Not sure" to these "Na"
 
 ```{r}
 50/(89+475+50) 
@@ -191,10 +199,15 @@ train.data <- train.data %>%
          Credit_History = as.factor(Credit_History))
 ```
 
+Now, the variable "Credit History" has following category (or known as "level") and respective counts. 
+
+```{r}
+summary(train.data$Credit_History)
+```
 
 **LoanAmount**
 
-There are 22 missing values out from 614 rows of data, which is only 3.5%. I will remove these missing values. According to Schafer (1999), the paper asserted that a missing rate of 5% or less is inconsequential.
+For the variable "LoanAmount", there are 22 missing values out of 614 rows of data (3.5%). I will remove these missing values. According to Schafer (1999), the paper asserted that a missing rate of 5% or less is inconsequential.
 
 ```{r}
 22/614 * 100
@@ -208,7 +221,7 @@ train.data <- train.data %>% na.omit()
 
 #### 5.1.1 Remove ID and factor conversion
 
-Same process applies to test data. 
+Applying the same data processing techniques in the train.data dataset to test.data dataset. 
 
 ```{r}
 
@@ -236,7 +249,7 @@ summary(test.data)
 
 **Credit History**
 
-For credit history, I will transfer 29 of "NA" to "1", because it is very likely that all these 29 NA are actually 1  because 1 is the most occuring category of that variable.  
+For credit history, I will transfer 29 of "NA" to "1", because it is very likely that all these 29 NA are actually 1  because 1 is the most occurring category of that variable and outnumbering "0".  
 
 ```{r}
 test.data <- test.data %>% 
@@ -258,8 +271,6 @@ test.data <- test.data %>%
 
 ```
 
-Both datasets have now been cleaned and are ready for analysis. 
-
 
 ### 5.3 Feature Engineering
 
@@ -269,7 +280,7 @@ This section creates 3 new variables based on original variables.
 
 1. total_income (Applicant Income + Co-applicant income)
 
-This is synthesised by adding "ApplicantIncome" and "CoapplicantIncome" to find the total income of an applicant. 
+This is synthesised by adding "ApplicantIncome" and "CoapplicantIncome" to find the total income of an application. 
 
 ```{r}
 train.data <- train.data %>% 
@@ -280,7 +291,7 @@ train.data <- train.data %>%
 
 2. Loan_Amt_per_term (Loan/month)
 
-This is synthesised by dividing "LoanAmount" with "Loan_Amount_Term" to, interestingly, find out would the loan amount with the unit of per month affect the approval of a loan application. 
+This is synthesised by dividing "LoanAmount" with "Loan_Amount_Term" to find out would the loan amount with the unit of per month would affect the approval of a loan application. 
 
 ```{r}
 train.data <- train.data %>% 
@@ -292,7 +303,7 @@ train.data <- train.data %>%
 
 3. Income provider (one incomer or two)
 
-This variable is created based on how many incomers in an application. Two levels have been detected for this new variable:
+This variable is created based on the numbers of incomers in an application. Two levels have been detected for this new variable:
 
 * "Applicant": Only the primary applicant has income
 
@@ -347,19 +358,17 @@ test.data <- test.data %>%
 
 ## 6 EXPLORATORY DATA ANALYSIS (EDA)
 
-In this section, I will use the **train.data** dataset to analyse general trends in the dataset because **train.data** has "Loan_Status" which is the responding variable. The relationship between Loan_Status with various variables in the dataset will be studied.
+In this section, I will use the **train.data** dataset to analyse general trends in the dataset because **train.data** has the outcome variable "Loan_Status". The relationship between Loan_Status with all variables in the dataset will be investigated.
 
 ```{r}
 names(train.data)
 
 ```
-This exploratory data analysis will serve as a tool to understand the general trends underneath the data before getting into machine learning and statistical modeling.
+This exploratory data analysis will help to understand the general trends in the data before getting into machine learning.
 
 ### 6.1 Overall Approval Rate 
 
-Most of the applications were approved from the train dataset were approved. 411 applications (70%) were approved, denoted with the symbol "Y"， whereas 181 of applications (30%) were rejected, denoted by "N".
-
-The loan status is the responding variable of this analysis and therefore the unbalanced sample size from both "Y" and "N" may badly affect the predictive model (sensitivity and specificity) built in the later machine learning section. It is a good note here and will be considered during models building and evaluation.
+Most of the applications from the train dataset were approved. 411 applications (70%) were approved, denoted by the symbol "Y"， whereas 181 of applications (30%) were rejected, denoted by "N".
 
 ```{r, message=FALSE, warning=FALSE}
 
@@ -392,13 +401,15 @@ ggplot(df6.1, aes(x = "", y = count, fill = Loan_Status)) +
 
 ```
 
+It is an unbalanced dataset because the number of observations in both categories are different from each other in a large scale, and which may cause problem in machine learning. In section 7.2, a technique will be used to address this data unbalanced problem. 
+
 ### 6.2 Would Gender affect Loan Approval
 
-It will be interesting to see the number of female and male applicants and would gender affect loan approval. Data shows that:
+Results show that:
 
-* There were lesser female applicants (109) than male applicants (483).
+* There are lesser female applicants (109) than male applicants (483).
 
-* However, the loan success rate of both gender are the same, both arrived at 70%. There is no detection of gender bias from the dataset. 
+* However, the loan success rate of both gender are the same, both arrived at 70%. 
 
 ```{r, fig.width = 8, message=FALSE}
 
@@ -453,7 +464,7 @@ There are three type of income categories to be analysed, which are:
 * "CoapplicantIncome" - the income of co-applicant  
 * "total_income" - the total income of both primary applicant and co-applicant  
 
-```{r, fig.width=8, fig.height=7}
+```{r, fig.width=8, fig.height=7, message=FALSE, warning=FALSE}
 
 # set up dataframe
 
@@ -487,7 +498,8 @@ p2 <- ggplot(df6.3, aes(x = Loan_Status, y = log(income), shape = Loan_Status, c
         plot.title = element_text(face = "bold"),
         legend.position = "none")+
   labs(x = "Loan Status",
-       title = "Logged Income Category vs Loan Status")
+       title = "Logged Income Category vs Loan Status",
+       caption = "total income = applicant income + co-applicant income")
 
 library(ggpubr)
 
@@ -498,14 +510,14 @@ ggarrange(p1, p2,
 
 ```
 
-I hypothesise that whoever have higher income, will have application approved, therefore, the boxplot of "Y" should be at a higher position than "N". 
+My hypothesis is that the boxplots of "Y"s should be at a higher position than all the "N" because applicants in the "Y" had their application approved and therefore would have higher income.  
 
-Interestingly, results show that regardless of whether the income is based on original scale or log transformed, 
+However, results show that regardless of whether the income is based on original scale or log transformed, 
 
-* all three income data has no obvious impact on loan approval.   
-* Boxplots of 3 type of incomes "ApplicantIncome", "CoapplicantIncome" and "total_income" overlap with each other near perfectly. "Note: total_income is the combination of income from applicant and co-applicant."  
+* All three income data have no obvious impact on loan approval.   
+* Boxplots of 3 type of incomes "ApplicantIncome", "CoapplicantIncome" and "total_income" overlap with each other.  
 
-It indicates that the criteria of loan approval is not merely based on income. 
+It indicates that the criteria of loan approval is not based on income, at least it is not obvious.  
 
 
 ### 6.4 Number of incomers
@@ -516,9 +528,9 @@ The "Applicant" in the graph means that only primary applicant has income in an 
 
 * From disapproved application (N), there is not much different between "Applicant" and "Both".
 
-* From approved application (Y), more applications with dual-income, "Both" got approved.  
+* From approved application (Y), "Both" has more application got approved (39% more).   
 
-It is a good sign that feature engineering does help in extracting hidden trend in the data. It would be tested statistically in later section using machine learning technique. 
+It is a good sign that feature engineering does help in extracting hidden trend in the data. 
 
 ```{r}
 
@@ -547,15 +559,12 @@ ggplot(df6.4, aes(x = lab, y = count, fill = Income_provider)) +
        title = "Dual-incomers Help Loan Approval Positively (Y)")
 
 ```
-In the approved application "Y", there are 38% more application with "dual-incomers" got their application approved.  
+In the approved application "Y", there are 38.95% more application in the "Both" group got their application approved. 
 
 ```{r}
 (239-172)/172 *100
 
 ```
-
-
-
 
 ### 6.5 Marrital Status, Depedents and Education 
 
@@ -608,9 +617,9 @@ Insights show that:
 
 * If an applicant does not have credit history, 90% of the chance that his/her application would be rejected. Credit history will help tremendous in getting loan application approved.
 
-* There are 3 different types of property area, semiurban has the highest approval rate (77%), followed by urban at 68%, and lastly semi-urban at 62%. 
+* There are 3 different types of property area, semi-urban has the highest approval rate (77%), followed by urban at 68%, and lastly semi-urban at 62%. 
 
-* Self-employment would not affect the success rate of loan approval.
+* Self-employment would not have relation with loan approval.
 
 ```{r, fig.width=9, fig.height=7}
 # Set up dataframe
@@ -648,26 +657,26 @@ ggplot(df6.6, aes(x = lab, y = count, fill = Loan_Status)) +
 
 ### 6.7 EDA summary
 
-From the exploratory data analysis, there are some visual trends in education status, marital status and property area that they may impact the approval of a loan application. The most obvious limiting factor is whether the applicant has previous credit history. 
+From the exploratory data analysis, there are some visual trends in education status, marital status and property area that they may impact the approval of a loan application. Credit history had the largest impact on loan application outcome.  
 
-Apart from the above visualisation analysis, Statistical modeling (machine learning) will be carried out to help extract the inner trends in the data and ultimately build an effective model to predict the imported test.data dataset.
+Apart from the above visualisation analysis, Statistical modeling (machine learning) will be carried out next to help extract inner trends in the data and ultimately build an effective model to predict application outcome of the imported test.data dataset.
 
 
 ## 7 MACHINE LEARNING
 
 ### 7.1 Data partitioning
 
-There are two datasets imported, the **train.data** and the **test.data**. However, only the **train.data** datasets have the responding variable, **Loan_Status**. Therefore, my strategies will be:
+There are two datasets imported, the **train.data** and the **test.data**. However, only the **train.data** dataset has the responding variable **"Loan_Status"**. Therefore, my strategies will be (a common machine learning technique):
 
-* Split the train.data dataset into proportioned **train.set** and **test.set**. This test.set will be used to assessing models built from the **train.set**.
+* Split the train.data dataset into proportioned **train.set** and **test.set**. This **test.set** will be used to assess models built from the **train.set**.
 
-* Lastly, the best model will be used to predict the **test.data**.
+* The best model will be used to predict the **test.data**.
 
-There are several ratio options for data partitioning, such as 50:50, 60:40, or 80:20 split of the data into train and test set. Most popular ranges are 40:60, 30:70, and 20:80, and usually one can pick the 30:70 as it is in the "median" position. 
+There are several ratio options for data partitioning, such as 50:50, 60:40, or 80:20 to split the data into train and test set. Most popular ratios are 40:60, 30:70, and 20:80, and usually the 30:70 is popular because it is in the "middle" position. 
 
-However, data partitioning is largely depends on how much data we have. We should try our best to ensure there is enough data to train an effective model as well as enough data for the test set to assess the performance of the model. 
+However, data partitioning is largely depends on how much data we have. If dataset is sufficiently big, results yield from different partitioning ratio may be similar. In small dataset such as the dataset in this project, We should try our best to ensure there is enough data to train an effective model as well as enough data for the test set to assess the performance of the model. 
 
-I am going for 70:30 split of the train.data into train and test set to ensure there is sufficient enough for the test set for model evaluation purpose. 
+I am going for 70:30 split of the train.data into train.set and test.set to ensure there is sufficient data for both of the datasets.
 
 ```{r}
 set.seed(123)
@@ -683,7 +692,10 @@ test.set <- train.data[-ind, ]
 
 ```
 
-The train.data is a small dataset consisting only 592 rows of observation, and data partition splits it into 70% of train.set with 415 rows of observation (~70%) and 177 rows of observation (~30%).
+The train.data is a small dataset consisting only 592 rows of observation, and data partition splits it into:
+
+* 70% train.set with 415 rows of observation and,    
+* 30% of test.set with 177 rows of observation.  
 
 Data size of **train.set**: 
 
@@ -697,24 +709,32 @@ Data size of **test.set**:
 dim(test.set)[1]
 
 ```
-The test set has 54 and 123 of "N" and "Y". There would be a little concern for "N" as its data size is not very large and therefore specificity of the model built would be affected. 
-
+The test set has 54 and 123 of "N" and "Y". I have a concern that the sample size for "N" might be insufficient and would cause low specificity. If it is the case I would need to try out other partitions such as 60:40 instead of current 30:70. Anyway, it will be detected in later stage.
 
 ```{r}
 
-table(train.set$Loan_Status)
+table(test.set$Loan_Status)
 
 ```
+
+
 ### 7.2 Handling Data Imbalance
 
 As discussed, this dataset has class imbalance problem. Approximately 30% of the data in the responding variable is made up of "N", and 70% for "Y". It means that there is less data for models to learn to classify "N". 
 
-Accuracy rate calculated in later section would be misleading because it can be dominated by corrected predicted Y。Technically, it can be high in accuracy rate, high in sensitivity but low in specificity. 
+Accuracy rate calculated in later section would be misleading because it could be dominated by "Y". Technically, it means a high level in accuracy rate, a high level in sensitivity but a low level in specificity. This project put equal weight on sensitivity and specificity, and therefore a model with similar accuracy rate, sensitivity and specificity is desired. 
 
 ```{r}
 127/(127+288)*100
+
 ```
-To solve this problem, I will use technique that can help making both "N" and "Y" having similar amount of data. This can be done using over-sampling, under-sampling, both-sampling, and synthetic data. Both-sampling is the technique that applies both over- and under-sampling. 
+
+To solve this data unbalance problem, there are 4 techniques:
+
+1. *Over-sampling*: Increase the sample size of "N" by randomly repeat some of the existing data.   
+2. *Under-sampling*: Reduce the sample size of "Y" to the sample size of "N". Some data of "Y" will be lost.   
+3. *Both-sampling*: It uses over-sampling and under-sampling to a dataset and make a balanced size between both "Y" and "N" group.     
+4. *ROSE*: Create any desired sample size by synthesising artificial data. However, some misleading data would need to be handled. For example, the minimum of age is 0, but it could be a negative value if ROSE is applied. Therefore, Data needs to be checked and cleaned if ROSE is applied.    
 
 
 ```{r}
@@ -727,26 +747,26 @@ rose_train <- ROSE(Loan_Status ~., data = train.set, N = 500)$data
 
 ```
 
-From my experience, the method "both" (combination of over-sampling and under-sampling) worked very well, and this will be used in this project. 
+From my experience, the method "both" (combination of over-sampling and under-sampling) generally worked  well, and this technique will be used in this project.
+
 ```{r}
 table(both_train$Loan_Status)
 
 ```
-* The "N" had 127 observations, and it has been increased to 208 by re-sampling. In re-sampling, it increases the sample size by randomly repeating some of the original information.
-* The "Y" had 288 observations, and it has been reduced to 207 with some lost of information.  
+
+* The "N" had 127 observations, and it has been increased to 208 by re-sampling. In re-sampling, it increases the sample size by randomly repeating some of the existing information.
+* The "Y" had 288 observations, and it has been reduced to 207 with some information lost.  
 * The ratio of N:Y has now been improved from approximately 30:70 to approximately 50:50.
 
 
 ### 7.3 About Modeling 
 
-It should be aware that no model is 100% accurate in machine learning. Therefore, different models are generally built based on different algorithms to search for the model that can do the best job in prediction. 
+It should be aware that no model is 100% accurate in machine learning. Generally, different models from different appropriate algorithms are built and the best model is searched and used to predict an unknown dataset. 
 
 
 ### 7.4 Logistic Regression
 
-This project faces a binary / binomial problem which means the responding variable has only 2 values, which is either yes or no. Logistic regression will be applied. Logistic regression can also be used for multinomial situation where responding variable has more than 2 levels. 
-
-For logistic regression, it is not required to test the linear relationship between predictors and the responding variable, and therefore the normality of error terms.
+This project faces a binary / binomial problem which means the responding variable has only 2 group, such as yes or no. Logistic regression will be applied. For logistic regression, it is not required to test the linear relationship between predictors and the responding variable, and therefore the normality of error terms.
 
 Following show the results of a binomial logistic regression model with a 10-fold cross validation (cv) and a cv repetition of 3 times. 
 
@@ -1446,6 +1466,8 @@ The random forest model suggests that,
 * loan amount, are the top 5 most important variables.   
 
 The final prediction was made on a unknown dataset with 362 applications (observation) and predicted that 37% (133) of the applications will be rejected and 63%  (255) of the applications will be approved. 
+
+
 
 
 
