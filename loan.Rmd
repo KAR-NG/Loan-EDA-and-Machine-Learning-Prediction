@@ -783,13 +783,13 @@ summary(model_logistic)
 
 ```
 
-*Insights*
+**Insights**
 
-* Results show that variable **total_income** and the level "480" in the variable **Loan_Amount_per_term** are redundant because all other variable have provided sufficient information at 100% level in explaining the variability in the responding variables. 
+* Results show that variable **total_income** and the level "480" in the variable **Loan_Amount_per_term** are redundant because all other variable have provided sufficient information in explaining the variability in the responding variables. 
 
-* The model shows that most variables are not significantly related to the loan status (which is the responding variable), except for **gender (male), marital Status (yes), dependents (2), co-applicant Income, credit history (1 & not sure) and property area (semi-urban)**. These can be described as important variables that is said to have real effect (Will not have 0 effect, but can be negative) on the approval of loan, though they are statistically significant, but their effects are subjected to their coefficient estimates (log odd) and one's significant effect sometime might be too small to have a decisive impact.    
+* The model shows that most variables are not significantly related to the loan status (which is the outcome variable), except for **gender (male), marital Status (yes), dependents (2), co-applicant Income, credit history (1 & not sure) and property area (semi-urban)**. These are statistically important variables that is said to have real effect (Will not have 0 effect, but can be negative) on the approval of loan, though they are statistically significant, but their effects are subjected to their coefficient estimates (log odd) and one's significant effect sometime might be too small to have a decisive impact.    
 
-Therefore, a new logistic model is built with only significant variables as below. 
+A new logistic model is built with only significant variables as below. 
 
 ```{r}
 model_logistic <- train(Loan_Status ~ Gender + Married + Dependents + CoapplicantIncome + Credit_History + Property_Area, 
@@ -806,7 +806,7 @@ summary(model_logistic)
 
 **Receiver Operating Characteristics Curve (ROC)**
 
-A ROC curve is plotted to search for the optimum AUC (area under the curve), sensitivity, specificity and the probability cutoff point. 
+A ROC curve is plotted to search for the optimum AUC (area under the curve) that would give rise to the best sensitivity, specificity and the probability cutoff point. 
 
 ```{r}
 
@@ -829,19 +829,19 @@ plot.roc(roc_logistic,
 
 
 ```
-Insights:
+**Insights**
 
-* The higher the AUC, the better the model. The diagonal line is where AUC equal to 0.5, where the binary classification is random.   
-* AUC values of 0.756 is considered a good model and our model is very useful with a AUC of 0.620.
-* The best probability cutoff point is 0.380. It will be a probability cutoff point that any obversation above this point will be classified as "Y". 
+* The higher the AUC, the better the model. The diagonal line is where AUC is equal to 0.5, it is where the binary classification is based on random chance.    
+* AUC values of 0.756 is considered a good because it is higher than 0.5.  
+* The best probability cutoff point suggested by this ROC with this AUC is 0.380. It will be a probability cutoff point that any observation above this point will be classified as "Y". 
 
 **Prediction with test data**
 
-Start prediction based on the probability cutoff point 0.356 detected above. 
+Start prediction based on the probability cutoff point 0.380. 
 
 ```{r}
 
-# Set up dataframe
+# Set up data frame
 
 CM_logistic <- pred_logistic %>% 
   dplyr::select(Y) %>% 
@@ -856,9 +856,9 @@ confusionMatrix(CM_logistic$result_based0.38,
 
 ```
 
-This model has accuracy of 82%, it may seems high but it is miss-leading because it can only correctly predicting "Y" correctly at 97% (sensitivity) but very low accuracy of predicting "N" at only 48% (specificity).
+This model has a very good accuracy rate at 82.5% but in above case, this accuracy rate is very miss-leading because it can only correctly predicting "Y" at 97.6% (sensitivity) and when predicting "N", the accuracy drops to only 48% (specificity).
 
-Let's try out the default 0.5 cut-off point, it is the default classificiation cut-off point if ROC is not generated for its suggestion of the best probability cutoff point. 
+Let's try out the default 0.5 cut-off point, it is the default classification cut-off point if ROC is not generated for the best suggested probability cutoff point. The default 0.5 generally works well but ROC's probability cutoff point is generally recommended. 
 
 ```{r}
 pred_logistic <- model_logistic %>% predict(test.set, type = 'raw') 
@@ -868,11 +868,15 @@ confusionMatrix(pred_logistic,
                 test.set$Loan_Status,
                 positive = "Y")
 ```
-Although the accuracy rate drops from 82% to 73%, but the gap between sensitivity and specificity become much smaller. In other words, the accuracy rate of correctly predicting "N" increased. Additionally, the accuracy rate is also higher than the "No Information Rate" of 69%, but it's 95% CI has cover the no information rate. It indicates that there is a chance that this model can be useless. "No information rate" is the chance of getting "Y" when the classification is made based on random chance. 
+The default probability cutoff point of 0.5 is a better point to be used in this case. 
 
-One may say the probability cut-off point of 0.38 is better because it has higher rate for accuracy and sensitivity, however, whether a model is good or bad is largely depends on its prediction purpose. If predicting "Y" is more important than predicting "N" then model with probability point of 0.38 is better than the 0.5 cutoff point.
+Though the accuracy rate drops from 82.5% to 73.4%, but the gap between sensitivity and specificity become much smaller. In other words, the accuracy rate of correctly predicting "N" increased at the trade-off of sensitivity. The overall accuracy rate become less miss-leading. 
 
-However, there is no specific purpose in this project and so I will be choosing the model that has somehow equal sensitivity and specificity (or closer gap). 
+The accuracy rate is also higher than the "No Information Rate" of 69%, but it's 95% CI has cover the no information rate. It indicates that there is a chance that this model can be useless. "No information rate" is the chance of getting "Y" when the classification is made based on random chance. 
+
+One may say the probability cut-off point of 0.38 is better because it has higher rate for accuracy and sensitivity, however, whether a model is good or bad is largely depends on the purpose of the prediction. If predicting "Y" is more important in a project than predicting "N" then the model with probability point of 0.38 is better than the 0.5 cutoff point.
+
+However, there is no specific purpose in this project specifying which sensitivity or specificity need to be emphasized and so I will be choosing the model that has somehow equal sensitivity and specificity (or closer gap).  
 
 Therefore, in logistic regression, 0.5 cutoff point is much better. 
 
@@ -889,9 +893,9 @@ Therefore, in logistic regression, 0.5 cutoff point is much better.
 
 #### 7.5.1 Decision Tree Model
 
-A decision tree model is built. It is a popular non-parametric method that can handle missing data (though I have handled them) amd immune to multicollinearity and outliers. It is a method usually built for quick understanding of the variables and their effects on the outcome.
+A decision tree model is built. It is a popular non-parametric algorithm that can handle missing data (though I have handled them), and is immune to multicollinearity and outliers. It is a method usually built for quick understanding of the variables and their effects on the outcome.
 
-Decision tree continuously split the data into 2 and repeatedly until maximum homogeneity within the new parts are achieved. The entire structure is like a upside-down tree with most important variables being located at the top, and each split there are decision rules to help making classification. 
+Decision tree continuously splits the data into 2 and repeatedly until maximum homogeneity within the new parts are achieved. The entire structure is like a upside-down tree with most important variables being located at the top, and there are decision rules in each split to help making classification. 
  
 **Model building**
 
@@ -909,7 +913,7 @@ model_dt
 
 ```
 
-A decision tree model is built and 0.0338 is suggested the best CP. CP is a value to limit the size of a decision tree and the default is 0.01, and this value generally can do a good job however the optimum one is generally generated and will be automatically used.
+A decision tree model is built and 0.0338 is suggested the best CP. CP is a value to limit the size of a decision tree and the default is 0.01. The default CP level generally can do a good job however the optimum one is generally generated and will be automatically selected by the model. 
 
 From following graph, CP at 0.0338 has the highest accuracy. 
 
@@ -918,13 +922,17 @@ plot(model_dt)
 
 ```
 
-The best model has following decision rules:
+This decision tree model has following decision rules:
 
 ```{r}
 model_dt$finalModel
 
 ```
-The "*" means that branch is a terminal node. Following is a better, as well a typical representation of a decision tree. The tree helps us to make decision. For examples, if an observation has credit history of 0, it will be directed to "No", and it should be a disapproved case by 82% of chance. This concept is the same to the left direction where the result is leading to "Y" of approved-loan scenario. 
+The "*" means that branch is a terminal node. 
+
+Following is a better, as well a typical representation of a decision tree. The root node with the most important variable is located at the top, and each split will create two branches and two root nodes. Nodes at the very based are terminal node where the splitting stops. During each split, decision roles will be made available.  
+
+The tree helps us to make decision. For examples, if an observation has credit history of 0, it will be directed to "No" at the root node, and it will be classified as disapproved case "N" by 82% of chance. This concept is the same to the left direction where the result is leading to "Y". 
 
 ```{r}
 
@@ -933,7 +941,7 @@ rattle::fancyRpartPlot(model_dt$finalModel)
 ```
 **Receiver Operating Characteristics Curve (ROC)**
 
-This is to find the best Probability cutoff point to be used for prediction. 
+Similar to logistic regression, ROC is also applied to find its suggested probability cutoff point to be used for prediction. 
 
 ```{r}
 
@@ -961,7 +969,7 @@ The best probability cutoff point suggested by ROC for decision tree model to pr
 
 **Predictions**
 
-This predictions will based on the calculated best probability cutoff point 0.255 to determine an observation is "Y".
+This prediction will be based on the ROC suggested probability cutoff point 0.255 to determine if an observation is "Y".
 
 ```{r}
 
@@ -975,22 +983,23 @@ CM_dt <- pred_dt %>%
 confusionMatrix(CM_dt$result_based0.745, test.set$Loan_Status, positive = "Y")
 
 ```
-The model has fairy high accuracy rate at 77.4% with a rate higher than "No Information Rate", it indicates that the model is useful. However, the probability gives miss-leading accuracy rate, with big gap in sensitivity and specificity. There is at least 37% different between sensitivity and specificity.
+The model has fairy high accuracy rate at 77.4% with a rate higher than "No Information Rate", it indicates that the model is useful. However, the probability gives miss-leading accuracy rate, because there is a big gap between sensitivity and specificity. There is at least 37% different between sensitivity and specificity.
 
 ```{r}
  0.8862 - 0.51
+
 ```
 
 Let's try the default 0.5 cutoff point. 
 
-```{r}
+```{r, warning=FALSE, message=FALSE}
 
 CM_dt2 <- model_dt %>% predict(test.set, type = "raw")
 
 confusionMatrix(CM_dt2, test.set$Loan_Status, positive = "Y")
 
 ```
-With the probability cutoff point of 0.5, the gap between sensitivity and specificity become smaller with a difference at 20.4%. However, it is still considered a large disparity. 
+With the probability cutoff point of 0.5, the gap between sensitivity and specificity become smaller with a difference at 20.4%. However, it is still considered a big gap. 
 
 ```{r}
 0.7967-0.5926
@@ -1001,13 +1010,13 @@ I will take this decision tree as a not-so-good model for prediction.
 
 #### 7.5.2 Bagging model
 
-Now, I am building more than just a single tree like in the decision tree section. Every single tree 
+Now, I am building more than just a single tree by using the "bagging" method.    
 
-A method is called *bagging* which stands for "Bootstrap Aggregating". This method randomly samples the training set multiple times (with replacement, means after taking sample for the first model, the data is put back to be sampled for second model). Ultimately, many decion tree models are built, and the results of these models will be combined to make the best prediction. 
+The *bagging* stands for "Bootstrap Aggregating". This method samples the training set multiple times, randomly with replacement and build multiple trees. The decision of any classification will be based on the overall result of all the trees. 
 
 **Model building**
 
-The model is built and showing following feature. 
+Building the model: 
 
 ```{r}
 set.seed(123)
@@ -1023,7 +1032,7 @@ model_bag
 
 ```
 
-There were 25 bootstrap replications involved in the model. 
+There were 25 bootstrap replications involved in this algorithm. 
 
 ```{r}
 model_bag$finalModel
@@ -1054,7 +1063,7 @@ plot.roc(roc_bag,
 
 
 ```
-The best probability cutoff point is suggested to be 0.660. Any observation with probability above this level will be classified as "Y" by bagging model. 
+The best probability cutoff point is suggested to be 0.660. Any observation with probability above this level will be classified as "Y" by the bagging model. 
 
 ```{r}
 # set up
@@ -1074,14 +1083,14 @@ confusionMatrix(CM_bag[, 2],
 
 **Insights**
 
-* The model has a good accuracy rate of 72% and this is higher than the "No information rate" of 69.5%. It indicates that this model is useful and perform better than random chance.  
+* The model has a good accuracy rate of 72.3% and this is higher than the "No information rate" of 69.5%. It indicates that this model is useful and perform better than random chance.  
 
 * There is a different between sensitivity and specificity of 13%. It is acceptable if there is no other model perform better than this value. 
 
 ```{r}
 0.81-0.68
 ```
-Even the default probability cutoff point of 0.5 has a larger different between sensitivity and specificity rate of 17% as follow. Therefore, for my purpose of having an fair accurate model which put the same weight on both sensitivity and specificity, the probability point of 0.66 suggested by ROC is doing a better job. 
+Even the default probability cutoff point of 0.5 has a larger different between sensitivity and specificity rate at 17% (shown below). Therefore, for my purpose of searching for a fair, accurate model which put the same weight on both sensitivity and specificity, the probability point of 0.66 suggested by ROC is doing a better job. 
 
 ```{r}
 
@@ -1099,16 +1108,14 @@ confusionMatrix(CM_bag2,
 ```{r}
 0.8049-0.6296
 ```
-Again, there is no right or wrong about a model in this case. It depends on the purpose of the prediction. If the purpose to predict Y only, then this model with 0.5 probability cutoff point is certainly a better model than the model that used the R0C recommended cutoff point at 0.66.
+Again, there is no right or wrong about a model. It depends on the purpose of the prediction. If the purpose is to predict Y only, then this model with 0.5 probability cutoff point is certainly a better model than the model that used the R0C recommended cutoff point at 0.66.
 
 
 #### 7.5.3 Random Forest
 
-Random forest is one of the powerful machine learning algorithm that many machine learning practitioners love to use. 
+Random forest is one of the powerful machine learning algorithm that many machine learning practitioners prefer to use. 
 
-It is similar to planting many decisions. There are in fact many possible outcomes other than the outcome calculated in the decision tree section. It is because of randomisation nature of the algorithm and how I set.seed (A R code for randomisation) a model such as set.seed(123). If I set a different randomisation index, the result might be different. Therefore, I am building 500 trees in the random forest in this section to take possible result variations into account. 500 is a default value and is changeable.  
-
-Random forest applies the technique of bagging which will samples the train dataset numerous times to build numerous tree, however each tree has limited in the selection of available variables (or known as predictors in machine learning).  
+It is similar to bagging method that build many decisions trees based on random re-sampling with replacement. 500 tree models will be built in this random forest model. 500 is the default value but is change-able. The only difference between random forest and bagging is that random forest limit each tree in the selection of available variables (or known as predictors in machine learning). 
 
 
 ```{r}
@@ -1135,8 +1142,7 @@ The random forest model says that:
 model_rf$finalModel
 
 ```
-The accuracy is optimum when "mtry" equal to 26.
-
+The accuracy is optimum when "mtry" is equal to 26.
 
 ```{r}
 plot(model_rf)
@@ -1166,7 +1172,7 @@ plot.roc(ROC_rf,
 
 ```
 
-The best probability cut off points is 0.523, with AUC of 0.802, which is higher than the 50% of random chance. Therefore it is a model that is perform better than random chance. 
+The best probability cutoff points is 0.523, with AUC (area under the curve) equal to 0.802 which is a value higher than the 50% random chance. Therefore, it is a useful model that can perform better than random chance. 
 
 ```{r}
 # Set df
@@ -1182,13 +1188,13 @@ confusionMatrix(CM_rf[, 2], test.set$Loan_Status, positive = "Y")
 
 ```
 
-Random forest is performing superior than other models that I built previously. 
+Random forest is performing superior than other models built previously. 
 
 * This random forest model has the highest accuracy at 77.4%.    
 * This accuracy is higher than the "No Information Rate" at 69.5%.  
 * The "No Information Rate" is outside the 95% CI of 70.5%-83.3%, it indicates that the accuracy is significant.    
 * The sensitivity is the highest so far at 80.5%.    
-* The specificity is not the highest but it is fairly good at 70.37%.  
+* The specificity is not the highest but is fairly good at 70.37%.  
 * The gap between sensitivity and specificity is the smallest compared to other models built.  
 
 Let's see the performance of default probability cutoff point 0.5 for random forest model. 
@@ -1201,15 +1207,16 @@ confusionMatrix(CM_rf2, test.set$Loan_Status, positive = "Y")
 
 
 ```
-Random forest model with 0.5 probability cutoff point do no have a good performance. The accuracy is lower, the gap between sensitivity and specificity is larger, and "No Information Rate" fall into the 95% CI range, indicating that the model may not perform better than random chance when predicting "Y".
+Random forest model with 0.5 probability cutoff point do no have a better performance. The accuracy is lower, the gap between sensitivity and specificity is larger, and "No Information Rate" fall into the 95% CI range which indicating that the model may not perform better than random chance when predicting "Y".
 
-Therefore, random forest model is the best model so far with the probability cutoff point at 0.523.
+Therefore, random forest model is the best model so far with the ROC suggested probability cutoff point at 0.523.
 
 
 #### 7.5.4 XgbTree
 
-Extreme gradient boosting (XgbTree) is being run in this section. It is an extremely popular method that having the concept as random forest but the different is that there is no bootstrap sampling and the tree models are being built sequentially that learn the mistake from its previous model. Therefore, the trees built are become better and better. 
+Extreme gradient boosting (XgbTree) is being run in this section. It is an extremely popular method, it is similar to random forest but the difference is that there is no bootstrap sampling and the tree models are being built sequentially. It means trees are not built parallee, each tree built will learn the mistake from the previous tree. Therefore, the trees built will become better and better. 
 
+Building the model with complex tunning parameter:
 
 ```{r}
 #set.seed(123)
@@ -1261,7 +1268,7 @@ plot.roc(roc_xgb,
          main = "ROC - Extreme Gradient Boosting")
 
 ```
-The optimum probability cutoff point is 0.372. 
+The optimum probability cutoff point suggested by ROC is 0.372. 
 
 **Prediction**
 
@@ -1275,14 +1282,15 @@ confusionMatrix(CM_df[,2], test.set$Loan_Status, positive = "Y")
 
 ```
 
-Accuracy rate based on the recommended probability 0.372 is very misleading because the gap betweeon sensitivity and specificity is too high, at 30.98%.
+Accuracy rate based on the recommended probability 0.372 is very misleading because the gap between sensitivity and specificity is too high, at 30.98%.
 
 ```{r}
 90.24-59.26
-```
-If I say this model has 80.8% accuracy but when predicting "N", its actual accuracy is only 59.26% (defined as specificity). If the case is to have a fair accuracy in predicting "Y" and "N", then this xgboost model based on the 0.372 probability cutoff point is not a good model. 
 
-When the default 0.5 probability cutoff point is used, the model performance betcome better. 
+```
+For example, if I say this model has 80.8% accuracy but when predicting "N", its actual accuracy is only 59.26% (defined as specificity). 
+
+When the default 0.5 probability cutoff point is used, model performance become better. 
 
 ```{r}
 CM_df2 <- model_xgb %>% predict(test.set, type = "raw")
@@ -1290,23 +1298,18 @@ CM_df2 <- model_xgb %>% predict(test.set, type = "raw")
 confusionMatrix(CM_df2, test.set$Loan_Status, positive = "Y")
 
 ```
-However, its accuracy rate is lower than random forest at 77.4% and this xgboost model might be useless by chance as the 95% CI range cover the "No Information Rate" of 69.5%. The gap between sensitivity and specificity is also higher for xgboost compared to random forest model.
+However, its accuracy rate is lower than the random forest model at 77.4% built in previous section. This xgboost model might also be useless by chance as the 95% CI range cover the "No Information Rate" of 69.5%. The gap between sensitivity and specificity is also higher when compared to the random forest model.
 
-Therefore, random forest is the best algorithm in the models I have built previously and will be used to predict the unknown dataset, **test.data** that do not have the loan approval data "Loan_Status". 
+Therefore, random forest is the best algorithm among all model built previously and will be used to predict the unknown dataset, **test.data** that do not have the outcome variable "Loan_Status". 
 
-Looking at the variables of test.data:
-
-```{r}
-names(test.data)
-```
 
 ### 7.6 Variable Importance
 
-Before making the prediction, following are the Importance plot by the tree models I have built. It is the special type of plot by tree algorithm to tell which variables are important.
+Before making the prediction, following are Importance plots by the tree models I have built. It is the special type of plot by tree algorithms to help us tell which variables are important.
 
-Since, the random forest model is the best model, it will be given more weight. The random forest model suggests that Credit History, applicant income, total income (applicant income + co-applicant income). loan amount per term (loan amount per month) and the loan amount are the top 5 most important variables.
+Since, the random forest model is the best model, it should be given more weight. The random forest model suggests that credit history, applicant income, total income (applicant income + co-applicant income), loan amount per term (loan amount per month), and the loan amount are the top 5 most important variables.
 
-This results are supported by other tree-based algorithms as well, though the ranking of the top 5 or top variables might be slightly different but they tell the same story. Slight fluctuation is expected. Again, the result of random forest model should be emphasized as this is the best model in the case. 
+This result is supported by other tree-based algorithms, though the ranking of the top 5 or top variables might be slightly different but they tell the same story. Slight fluctuation is expected. Again, the result of random forest model should be emphasized as this is the best model. 
 
 ```{r, fig.width=10, fig.height=10}
 
@@ -1324,9 +1327,9 @@ ggarrange(p1, p2, p3, p4,
 
 ### 7.7 Final Prediction
 
-After building various machine learning models, train them using **train.set**, and evaluate them using **test.set**。 Random forest model with the probability cutoff point at 0.523 had the best performance, and therefore this model is used to make the final prediction.
+After building various machine learning models, trained them using **train.set**, and evaluated them using **test.set**。 Random forest model with the probability cutoff point at 0.523 had the best performance, and therefore this model will be selected to make the final prediction.
 
-The final prediction is carried out on the **test.data** dataset. This dataset do not have loan_status to show approve or disapprove of a loan application. Therefore, it is a dataset without results and requiring the best model to predict. 
+The final prediction is carried out on the **test.data** dataset. This dataset do not have loan_status to show application outcome. Therefore, it is a dataset without results and requiring the best model to predict. 
 
 This model has 362 applicants (also can be known as observation or rows) and 14 variables. 
 
@@ -1338,7 +1341,7 @@ dim(test.data)
 
 Before making prediction, the level “Co-applicant" in the variable "Income_provider" will be removed. 
 
-This level means whether the application has only the co-applicant has income, and the main applicant does not has an income. There are only 2 observation (data). All the models built, especially the best random forest model did not consider this level and therefore these 2 observation will be removed before making prediction before making prediction. 
+This level means whether the application has only the co-applicant has income, and the main applicant does not has an income. There are only 2 observation (data). All the models built, especially the best random forest model did not consider this level and therefore these 2 observation will be removed before making prediction.
 
 ```{r}
 summary(test.data$Income_provider)
@@ -1353,7 +1356,7 @@ test.data2 <- test.data %>%
 
 **Removing the levels in the Loan Amount Term**
 
-It is because that I set Loan amount term to be factor variable, therefore there are some levels in the unknown dataset are excluded when building the random forest model such as 6 (1 application) and 350 (1 application). They cannot be predicted based on the built random forest model and so they will be removed. 
+Similar concept, the levels "6" (1 application) and "350" (1 application) in the variable "Loan Amount Term" will be removed. They cannot be predicted based on the built random forest model and so they will be removed. 
 
 The levels used to build the model: 
 
@@ -1375,6 +1378,7 @@ test.data2 <- test.data2 %>%
          Loan_Amount_Term != 350)
   
 summary(test.data2$Loan_Amount_Term)
+
 ```
 Making the final prediction on the unknown dataset:
 
@@ -1389,14 +1393,6 @@ final_prediction <- final_prediction %>%
          Kar_prediction = as.factor(Kar_prediction)) %>% 
   rename(probability = Y)
 
-
-```
-
-Above are the results predicted for each application, total of 358 applications (rows).
-
-Adding the results to the test.data table and make a graph to see the results:
-
-```{r}
 # set up df
 
 df <- test.data2 %>% 
@@ -1408,9 +1404,6 @@ df <- test.data2 %>%
   mutate(total = sum(count),
          per = round(count/total, 2))
 
-```
-
-```{r}
 # plot
 
 ggplot(df, aes(x = "", y = count, fill = Kar_prediction)) +
@@ -1436,16 +1429,16 @@ ggplot(df, aes(x = "", y = count, fill = Kar_prediction)) +
 
 ## 8 CONCLUSION
 
-In conclusion based on the dataset with loan status (responding variable):
+In conclusion, 
 
 From EDA:
 
-* There are more male applicants than female but both genders have equal approval-reject rate at 70%:30%.  
-* From EDA, there is no clear trend that applicant income, coapplicant income and total income impact the success rate of loan.   
+* There are more male applicants than female but both genders have equal acceptance-rejection rate at 70%:30%.  
+* Tere is no clear trend that applicant income, co-applicant income and total income impact the success rate of loan.   
 * However, if both applicant and the co-applicant of an application have incomes, it may help the application get an approved. In the approved application "Y", there are 38% more application with "dual-incomers" got their application approved.    
 * Education may help a little, only 8% higher success rate.   
 * 9% higher success rate for married applicants.   
-* Applicants without credit history is highly likely get a rejection (only 8% succeeed). 80% of Applicants with a credit history got their application approved.   
+* Applicants without credit history is highly likely get a rejection (only 8% succeed). Among all the approved application, 80% of applicants had credit history.   
 
 From machine learning:
 
@@ -1453,22 +1446,23 @@ Logistic regression, decision tree, bagging, random forest, and tuned extreme gr
 
 * The model has the highest accuracy at 77.4%.    
 * This accuracy is higher than the "No Information Rate" at 69.5%.  
-* The "No Information Rate" is outside the 95% CI of 70.5%-83.3%, it indicates that the accuracy rate is significant.    
-* The sensitivity is the highest so far at 80.5%.    
-* The specificity is not the highest but it is fairly good at 70.37%.  
+* The "No Information Rate" is outside the 95% CI range of 70.5%-83.3%, it indicates that the accuracy rate is significant.    
+* The sensitivity is the highest at 80.5%.    
+* The specificity is not the highest but is fairly good at 70.37%.  
 * The gap between sensitivity and specificity is the smallest compared to other models built.  
 
-The random forest model suggests that,    
-* Credit History,   
+The random forest model suggests that following are the top 5 most important variables.    
+
+* credit history,   
 * applicant income,    
 * total income (applicant income + co-applicant income)    
 * loan amount per term (loan amount per month)     
-* loan amount, are the top 5 most important variables.   
+* loan amount
 
 The final prediction was made on a unknown dataset with 362 applications (observation) and predicted that 37% (133) of the applications will be rejected and 63%  (255) of the applications will be approved. 
 
 
-
+*Thank you for reading.*
 
 
 ##  9 REFERENCE

@@ -1,7 +1,3 @@
-Loan EDA and Machine Learning Prediction
-================
-Kar Ng
-1/24/2022
 
 -   [1 SUMMARY](#1-summary)
 -   [2 R PACKAGES](#2-r-packages)
@@ -12,12 +8,12 @@ Kar Ng
 -   [5 DATA CLEANING AND
     MANIPULATION](#5-data-cleaning-and-manipulation)
     -   [5.1 Train.data](#51-traindata)
-        -   [5.1.1 Remove ID and factor
-            conversion](#511-remove-id-and-factor-conversion)
+        -   [5.1.1 Removing ID and factor
+            conversion](#511-removing-id-and-factor-conversion)
         -   [5.1.2 Replacing NA](#512-replacing-na)
     -   [5.2 Test data](#52-test-data)
         -   [5.1.1 Remove ID and factor
-            conversion](#511-remove-id-and-factor-conversion-1)
+            conversion](#511-remove-id-and-factor-conversion)
         -   [5.1.2 Replacing NA](#512-replacing-na-1)
     -   [5.3 Feature Engineering](#53-feature-engineering)
 -   [6 EXPLORATORY DATA ANALYSIS
@@ -49,6 +45,14 @@ Kar Ng
 
 ------------------------------------------------------------------------
 
+title: “Loan EDA and Machine Learning Prediction” author: “Kar Ng” date:
+“1/24/2022” output: github\_document: toc: true toc\_depth: 4
+always\_allow\_html: yes
+
+------------------------------------------------------------------------
+
+------------------------------------------------------------------------
+
 ![](https://raw.githubusercontent.com/KAR-NG/loan/main/thumbnail.jpg)
 
 ------------------------------------------------------------------------
@@ -57,50 +61,55 @@ Kar Ng
 
 This project studies the effects of various loan-related variables and
 their effect on loan approval. These variables include gender, marital
-status, dependents, education, employment status, applicant’s income,
-co-applicant’s income, loan amount, loan amount term, credit history and
-property area. During feature engineering, some new variables were
-synthesized such as total income (combination of applicant and
-co-applicant incomes), loan per month (Loan amount / term), and whether
-the number of income providers would help getting application approved.
+status, number of dependents, education level, employment status,
+applicant’s income, co-applicant’s income, loan amount, loan amount
+term, credit history, and property area. In feature engineering, three
+new variables were synthesised. They are total income (combination of
+applicant and co-applicant incomes), loan per month (loan amount /
+term), and whether the number of income providers in an application.
 
 Exploratory data analysis shown that credit history is the most
-important variable among all variables. Among the approved applications,
-80% of applicants had credit history. Some other minor trends included
-that there are more male applicants than female but both gender have
-equal acceptance rate, education level may help a little with 8% higher
-in loan approved rate, married applicants may have 8% higher chance
-getting loan application approved, and an application that has two
-incomes (main applicant + co-applicant) would have higher chance getting
-application approved.
+important variable. It found that 80% of approved applicants had credit
+history compared to 20% approved applicants did not have credit history.
+Some other minor trends included that (1) there are more male applicants
+than female but both gender have equal acceptance rate, (2) higher
+education level may help a little with a 8% more in approved
+application, (3) a married relationship may also help a little with also
+a 9% more in approved application, and (4) if an application has two
+incomes (from both applicant + co-applicant), the application may get a
+higher chance to be approved (40% more approved applications had
+dual-income).
 
-Many models will also be built to search for the best model to make
-prediction on unknown dataset. This project will build a logistic
-regression, and focus on building tree algorithms included decision
-tree, bagging, random forest, and tuned extreme gradient boosting
-models. There is data unbalance problem in the dataset, “Both-sampling”
-was applied to under-sampling “Y” and over-sampling “N” in the
-responding variable “Loan-Status”.
+Many models were built to search for the best model to make prediction
+on an unknown dataset. This project built a logistic regression model
+and many tree-based models included decision tree, bagging, random
+forest, and tuned extreme gradient boosting models. There was data
+unbalance problem in the dataset, and “Both-sampling” was applied to
+under-sample “Y” and over-sample “N” in the responding variable
+“Loan-Status” to solve the data unbalance problem.
 
 In statistical modeling, random forest model with ROC-suggested
 probability “Y” cutoff point at 0.523 outperformed all other models. The
 random forest model has an accuracy rate of 77.4%, a “No Information
 rate” lower than the minimum point of 95% CI, and the model had the
 smallest gap between sensitivity and specificity, both at 80.5% and
-70.3%. Random forest Important plots suggests that application with a
-credit history is most important, followed by applicant income, total
-income, loan amount per term and credit history with level “Not sure”.
+70.3%. Random forest Important plots suggests that positive credit
+history is most important variable (supporting EDA), followed by
+applicant income, total income, loan amount per term, and credit history
+with level “Not sure”.
 
 The random forest model with 0.523 probability “Y” cutoff point was
-applied to predict on an unknown dataset with 362 observations,
-predicted that 63% of application should be “Y” (at 80.5% of chance) and
-37% of application should be “N” (at 70.3% of chance).
+applied to prediction loan application outcome on an unknown dataset。
+The model predicted that 63% of application should be “Y” (at 80.5% of
+chance) and 37% of application should be “N” (at 70.3% of chance).
 
 **Insights**
 
 ![](https://raw.githubusercontent.com/KAR-NG/loan/main/Highlight.png)
 
 ## 2 R PACKAGES
+
+Following R packages are loaded.
 
 ``` r
 library(tidyverse)
@@ -119,40 +128,43 @@ library(ROSE)
 
 ## 3 INTRODUCTION
 
-It is a machine learning project to demonstrate my technical skills.
-This project uses datasets that are related to loan borrowing.
+This project uses datasets from
+[Kaggle.com](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset)
+that are related to loan application. *Kaggle.com* is a popular website
+for data science community.
 
-I will use statistical modeling in machine learning to study the
-datasets and to extract important variables that are related to loan
-approval by the loan provider. I will also create predictive models that
-are able to make accurate prediction when new data are coming.
+This project will study variables that are potentially related to loan
+application such as gender, marital status, number of dependents,
+education level, self employment, applicant income, co-applicant income,
+loan amount, loan amount term, credit history, and area of respondents’
+property.
 
-Information to be analysed include gender, marital status, number of
-dependents, education level, self employment, applicant income,
-co-applicant income, loan amount, loan amount term, credit history, and
-area of respondents’ property.
+Exploratory data analysis will be applied to study the general trends
+between these variables with the outcome variable “loan status”.
+Statistical modeling will also be applied to study the data and to
+extract statistical important variables. Many models will be built and
+the best model will be used to predict application outcome of an unknown
+dataset.
 
 Two datasets are given, one is named ‘train.data’ and the another named
-‘test.data’. Both datasets have same information but the train.data has
-one more variable ‘loan status’, which contains the loan results.
+‘test.data’. Both datasets have same information but only the train.data
+has application outcome variable named ‘loan status’, which contains the
+loan results with either “Y” or “N”.
 
-There will be 3 datasets involved in this project. During modeling, I
-will split the train.data into two sbuject, one is a smaller subset with
-a name **“train\_set”** and another named **“test\_set”**. The
-**train\_set** will be used to make various models and the **test\_set**
-will be used to evaluate these models.
-
-Ultimately, the best model will be used to predict the ‘test.data’.
+During modeling, I will split the “train.data” into two smaller
+datasets, one is named **“train.set”** and another named **“test.set”**.
+The **train.set** will be used to make various models and the
+**test.set** will be used to evaluate these models. Finally, the best
+model will be applied to predict application outcome of the test.data
+dataset.
 
 ## 4 DATA PREPARATION
 
 Data is downloaded from the
 [Kaggle](https://www.kaggle.com/altruistdelhite04/loan-prediction-problem-dataset).
-Two datasets are downloaded, a train and a test data.
+Two datasets are downloaded, a train.data and a test.data dataset.
 
 ### 4.1 Data import
-
-The train and the test data are imported in following code chunk.
 
 ``` r
 train.data <- read.csv("train_loan.csv", na.strings = c("", "NA"))
@@ -162,12 +174,11 @@ test.data <- read.csv("test_loan.csv", na.strings = c("", "NA"))
 ### 4.2 Data exploration
 
 There are 13 variables for the train.data and 12 variables for the
-test.data. Both dataset have similar variable, however there is an
-additional variable in train.data, the “Loan\_Status” which records the
-loan outcome. Test.data is the dataset that requiring me to make
-prediction using the train.data.
+test.data. Both dataset have similar variable, but as mentioned, only
+the train.data has the application outcome “Loan\_Status”. The test.data
+is the dataset that requiring me to make application outcome prediction.
 
-Following show the first 6 rows of the train.data and the test.data.
+Following is the first 6 rows of the train.data and the test.data.
 
 ``` r
 head(train.data)
@@ -214,16 +225,9 @@ head(test.data)
     ## 5                 0         78              360              1         Urban
     ## 6              3422        152              360              1         Urban
 
-From structural analysis,
+**Structural Analysis**
 
--   There are 614 observations (rows) in the train.data dataset and 367
-    observations in the test.data dataset.  
--   Train.data has the last variable ‘Loan\_status’ that has either ‘Y’
-    or ‘N’ to indicate the success of a loan.  
--   The ‘Loan\_Amount\_Term’, which is the length of time a loan is to
-    be completely paid off, has repeated levels. For example, the
-    replication of 360. It may indicate that this variable has
-    categorical nature and should be converted in factor type.
+Train.data dataset:
 
 ``` r
 str(train.data)
@@ -244,6 +248,8 @@ str(train.data)
     ##  $ Property_Area    : chr  "Urban" "Rural" "Urban" "Urban" ...
     ##  $ Loan_Status      : chr  "Y" "N" "Y" "Y" ...
 
+Test.data dataset:
+
 ``` r
 str(test.data)
 ```
@@ -261,6 +267,18 @@ str(test.data)
     ##  $ Loan_Amount_Term : int  360 360 360 360 360 360 360 360 240 360 ...
     ##  $ Credit_History   : int  1 1 1 NA 1 1 1 0 1 1 ...
     ##  $ Property_Area    : chr  "Urban" "Urban" "Urban" "Urban" ...
+
+-   There are 614 observations (rows) in the train.data dataset and 367
+    observations in the test.data dataset.  
+-   The last variable ‘Loan\_status’ of train.data dataset has two
+    levels either ‘Y’ or ‘N’ to indicate application outcome of an
+    applicant.  
+-   The ‘Loan\_Amount\_Term’ is the length of time a loan is to be
+    completely paid off. This variable has repeated levels. For example,
+    there are many 360. It may indicate that this variable has
+    categorical nature and should be converted in factor type.
+
+**NA Analysis**
 
 To detect missing values (NA),
 
@@ -1320,15 +1338,15 @@ Credit\_History
 
 ### 5.1 Train.data
 
-#### 5.1.1 Remove ID and factor conversion
+#### 5.1.1 Removing ID and factor conversion
 
 First, I will remove the “Loan\_ID” and convert all character variables
-into factor because they are categorical variable. I remove LOan\_ID
-because it is meaningless for predictive analysis.
+into factor because they are categorical variables. LOan\_ID will be
+removed because it adds no value for prediction.
 
-Converting variables into factors will help my analysis because it gives
-the data a grouping features which will enable useful R function as well
-as visualisation in later stage.
+Converting variables into factors will help the analysis because it
+gives the data a grouping features which will enable useful R functions
+and useful visualisation in later stage.
 
 ``` r
 train.data <- train.data %>% 
@@ -1375,11 +1393,12 @@ will be filled up in next section.
 
 #### 5.1.2 Replacing NA
 
-Following codes replace all the NA with respective mode, which is the
-most occurring category of variable they belong. It is a decision after
+Following codes replace all the NAs with respective mode. “Mode” is the
+most occurring category of a variable. It is a decision made after
 carefully examining its feasibility, these missing values are less than
 5%, and their respective most occurring category have frequencies that
-are way higher than the rest of the categories.
+are way higher than the rest of the categories. Therefore, it is highly
+likely that these NAs may belong to the most occurring category.
 
 ``` r
 train.data <- train.data %>% 
@@ -1419,8 +1438,10 @@ summary(train.data)
 
 **Credit History**
 
-Regarding the NA in credit history, I found that the 50 NA is too many
-(8%), and is quite close to 89 of “0”. I decided to make it a new level.
+Regarding the NA in the variable “credit history”, I found that the 50
+NA is too many (8%) and is quite close to the 89 observations of the
+category “0” (mean no credit history). I decided to make a new level
+named “Not sure” to these “Na”
 
 ``` r
 50/(89+475+50) 
@@ -1435,11 +1456,22 @@ train.data <- train.data %>%
          Credit_History = as.factor(Credit_History))
 ```
 
+Now, the variable “Credit History” has following category (or known as
+“level”) and respective counts.
+
+``` r
+summary(train.data$Credit_History)
+```
+
+    ##        0        1 Not_sure 
+    ##       89      475       50
+
 **LoanAmount**
 
-There are 22 missing values out from 614 rows of data, which is only
-3.5%. I will remove these missing values. According to Schafer (1999),
-the paper asserted that a missing rate of 5% or less is inconsequential.
+For the variable “LoanAmount”, there are 22 missing values out of 614
+rows of data (3.5%). I will remove these missing values. According to
+Schafer (1999), the paper asserted that a missing rate of 5% or less is
+inconsequential.
 
 ``` r
 22/614 * 100
@@ -1455,7 +1487,8 @@ train.data <- train.data %>% na.omit()
 
 #### 5.1.1 Remove ID and factor conversion
 
-Same process applies to test data.
+Applying the same data processing techniques in the train.data dataset
+to test.data dataset.
 
 ``` r
 test.data <- test.data %>% 
@@ -1533,7 +1566,7 @@ summary(test.data)
 
 For credit history, I will transfer 29 of “NA” to “1”, because it is
 very likely that all these 29 NA are actually 1 because 1 is the most
-occuring category of that variable.
+occurring category of that variable and outnumbering “0”.
 
 ``` r
 test.data <- test.data %>% 
@@ -1578,8 +1611,6 @@ test.data <- test.data %>%
   na.omit()
 ```
 
-Both datasets have now been cleaned and are ready for analysis.
-
 ### 5.3 Feature Engineering
 
 **On Train.data**
@@ -1589,7 +1620,7 @@ This section creates 3 new variables based on original variables.
 1.  total\_income (Applicant Income + Co-applicant income)
 
 This is synthesised by adding “ApplicantIncome” and “CoapplicantIncome”
-to find the total income of an applicant.
+to find the total income of an application.
 
 ``` r
 train.data <- train.data %>% 
@@ -1600,8 +1631,8 @@ train.data <- train.data %>%
 2.  Loan\_Amt\_per\_term (Loan/month)
 
 This is synthesised by dividing “LoanAmount” with “Loan\_Amount\_Term”
-to, interestingly, find out would the loan amount with the unit of per
-month affect the approval of a loan application.
+to find out would the loan amount with the unit of per month would
+affect the approval of a loan application.
 
 ``` r
 train.data <- train.data %>% 
@@ -1611,8 +1642,8 @@ train.data <- train.data %>%
 
 3.  Income provider (one incomer or two)
 
-This variable is created based on how many incomers in an application.
-Two levels have been detected for this new variable:
+This variable is created based on the numbers of incomers in an
+application. Two levels have been detected for this new variable:
 
 -   “Applicant”: Only the primary applicant has income
 
@@ -1661,9 +1692,9 @@ test.data <- test.data %>%
 ## 6 EXPLORATORY DATA ANALYSIS (EDA)
 
 In this section, I will use the **train.data** dataset to analyse
-general trends in the dataset because **train.data** has “Loan\_Status”
-which is the responding variable. The relationship between Loan\_Status
-with various variables in the dataset will be studied.
+general trends in the dataset because **train.data** has the outcome
+variable “Loan\_Status”. The relationship between Loan\_Status with all
+variables in the dataset will be investigated.
 
 ``` r
 names(train.data)
@@ -1675,21 +1706,14 @@ names(train.data)
     ## [10] "LoanAmount"        "Loan_Amount_Term"  "Loan_Amt_per_term"
     ## [13] "Credit_History"    "Property_Area"     "Loan_Status"
 
-This exploratory data analysis will serve as a tool to understand the
-general trends underneath the data before getting into machine learning
-and statistical modeling.
+This exploratory data analysis will help to understand the general
+trends in the data before getting into machine learning.
 
 ### 6.1 Overall Approval Rate
 
-Most of the applications were approved from the train dataset were
-approved. 411 applications (70%) were approved, denoted with the symbol
-“Y”， whereas 181 of applications (30%) were rejected, denoted by “N”.
-
-The loan status is the responding variable of this analysis and
-therefore the unbalanced sample size from both “Y” and “N” may badly
-affect the predictive model (sensitivity and specificity) built in the
-later machine learning section. It is a good note here and will be
-considered during models building and evaluation.
+Most of the applications from the train dataset were approved. 411
+applications (70%) were approved, denoted by the symbol “Y”， whereas
+181 of applications (30%) were rejected, denoted by “N”.
 
 ``` r
 # set up dataframe
@@ -1720,19 +1744,21 @@ ggplot(df6.1, aes(x = "", y = count, fill = Loan_Status)) +
        subtitle = "(Train data)")  
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-28-1.png)<!-- -->
+
+It is an unbalanced dataset because the number of observations in both
+categories are different from each other in a large scale, and which may
+cause problem in machine learning. In section 7.2, a technique will be
+used to address this data unbalanced problem.
 
 ### 6.2 Would Gender affect Loan Approval
 
-It will be interesting to see the number of female and male applicants
-and would gender affect loan approval. Data shows that:
+Results show that:
 
--   There were lesser female applicants (109) than male applicants
-    (483).
+-   There are lesser female applicants (109) than male applicants (483).
 
 -   However, the loan success rate of both gender are the same, both
-    arrived at 70%. There is no detection of gender bias from the
-    dataset.
+    arrived at 70%.
 
 ``` r
 # set up dataframe
@@ -1765,7 +1791,7 @@ ggplot(df6.2, aes(x = "", y = count, fill = Loan_Status)) +
   facet_wrap(~ Gender)
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-28-1.png)<!-- --> Female
+![](loan_files/figure-gfm/unnamed-chunk-29-1.png)<!-- --> Female
 Applicants:
 
 ``` r
@@ -1824,7 +1850,8 @@ p2 <- ggplot(df6.3, aes(x = Loan_Status, y = log(income), shape = Loan_Status, c
         plot.title = element_text(face = "bold"),
         legend.position = "none")+
   labs(x = "Loan Status",
-       title = "Logged Income Category vs Loan Status")
+       title = "Logged Income Category vs Loan Status",
+       caption = "total income = applicant income + co-applicant income")
 
 library(ggpubr)
 
@@ -1834,27 +1861,21 @@ ggarrange(p1, p2,
           labels =c("A", "B"))
 ```
 
-    ## Warning: Removed 261 rows containing non-finite values (stat_boxplot).
+![](loan_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
 
-    ## Warning: Removed 261 rows containing missing values (geom_point).
+My hypothesis is that the boxplots of “Y”s should be at a higher
+position than all the “N” because applicants in the “Y” had their
+application approved and therefore would have higher income.
 
-![](loan_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+However, results show that regardless of whether the income is based on
+original scale or log transformed,
 
-I hypothesise that whoever have higher income, will have application
-approved, therefore, the boxplot of “Y” should be at a higher position
-than “N”.
-
-Interestingly, results show that regardless of whether the income is
-based on original scale or log transformed,
-
--   all three income data has no obvious impact on loan approval.  
+-   All three income data have no obvious impact on loan approval.  
 -   Boxplots of 3 type of incomes “ApplicantIncome”, “CoapplicantIncome”
-    and “total\_income” overlap with each other near perfectly. “Note:
-    total\_income is the combination of income from applicant and
-    co-applicant.”
+    and “total\_income” overlap with each other.
 
-It indicates that the criteria of loan approval is not merely based on
-income.
+It indicates that the criteria of loan approval is not based on income,
+at least it is not obvious.
 
 ### 6.4 Number of incomers
 
@@ -1868,12 +1889,11 @@ and the co-applicant have incomes in an application.
 -   From disapproved application (N), there is not much different
     between “Applicant” and “Both”.
 
--   From approved application (Y), more applications with dual-income,
-    “Both” got approved.
+-   From approved application (Y), “Both” has more application got
+    approved (39% more).
 
 It is a good sign that feature engineering does help in extracting
-hidden trend in the data. It would be tested statistically in later
-section using machine learning technique.
+hidden trend in the data.
 
 ``` r
 # set up data frame
@@ -1905,9 +1925,9 @@ ggplot(df6.4, aes(x = lab, y = count, fill = Income_provider)) +
        title = "Dual-incomers Help Loan Approval Positively (Y)")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-32-1.png)<!-- --> In the
-approved application “Y”, there are 38% more application with
-“dual-incomers” got their application approved.
+![](loan_files/figure-gfm/unnamed-chunk-33-1.png)<!-- --> In the
+approved application “Y”, there are 38.95% more application in the
+“Both” group got their application approved.
 
 ``` r
 (239-172)/172 *100
@@ -1967,7 +1987,7 @@ ggplot(df6.5, aes(x = lab, y = count, fill = Loan_Status)) +
 
     ## Warning: Ignoring unknown parameters: binwidth, bins, pad
 
-![](loan_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
 
 ### 6.6 Credit\_History, Property\_Area, Self\_Employed
 
@@ -1977,11 +1997,11 @@ Insights show that:
     his/her application would be rejected. Credit history will help
     tremendous in getting loan application approved.
 
--   There are 3 different types of property area, semiurban has the
+-   There are 3 different types of property area, semi-urban has the
     highest approval rate (77%), followed by urban at 68%, and lastly
     semi-urban at 62%.
 
--   Self-employment would not affect the success rate of loan approval.
+-   Self-employment would not have relation with loan approval.
 
 ``` r
 # Set up dataframe
@@ -2021,47 +2041,49 @@ ggplot(df6.6, aes(x = lab, y = count, fill = Loan_Status)) +
 
     ## Warning: Ignoring unknown parameters: binwidth, bins, pad
 
-![](loan_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-36-1.png)<!-- -->
 
 ### 6.7 EDA summary
 
 From the exploratory data analysis, there are some visual trends in
 education status, marital status and property area that they may impact
-the approval of a loan application. The most obvious limiting factor is
-whether the applicant has previous credit history.
+the approval of a loan application. Credit history had the largest
+impact on loan application outcome.
 
 Apart from the above visualisation analysis, Statistical modeling
-(machine learning) will be carried out to help extract the inner trends
-in the data and ultimately build an effective model to predict the
-imported test.data dataset.
+(machine learning) will be carried out next to help extract inner trends
+in the data and ultimately build an effective model to predict
+application outcome of the imported test.data dataset.
 
 ## 7 MACHINE LEARNING
 
 ### 7.1 Data partitioning
 
 There are two datasets imported, the **train.data** and the
-**test.data**. However, only the **train.data** datasets have the
-responding variable, **Loan\_Status**. Therefore, my strategies will be:
+**test.data**. However, only the **train.data** dataset has the
+responding variable **“Loan\_Status”**. Therefore, my strategies will be
+(a common machine learning technique):
 
 -   Split the train.data dataset into proportioned **train.set** and
-    **test.set**. This test.set will be used to assessing models built
+    **test.set**. This **test.set** will be used to assess models built
     from the **train.set**.
 
--   Lastly, the best model will be used to predict the **test.data**.
+-   The best model will be used to predict the **test.data**.
 
 There are several ratio options for data partitioning, such as 50:50,
-60:40, or 80:20 split of the data into train and test set. Most popular
-ranges are 40:60, 30:70, and 20:80, and usually one can pick the 30:70
-as it is in the “median” position.
+60:40, or 80:20 to split the data into train and test set. Most popular
+ratios are 40:60, 30:70, and 20:80, and usually the 30:70 is popular
+because it is in the “middle” position.
 
 However, data partitioning is largely depends on how much data we have.
-We should try our best to ensure there is enough data to train an
-effective model as well as enough data for the test set to assess the
-performance of the model.
+If dataset is sufficiently big, results yield from different
+partitioning ratio may be similar. In small dataset such as the dataset
+in this project, We should try our best to ensure there is enough data
+to train an effective model as well as enough data for the test set to
+assess the performance of the model.
 
-I am going for 70:30 split of the train.data into train and test set to
-ensure there is sufficient enough for the test set for model evaluation
-purpose.
+I am going for 70:30 split of the train.data into train.set and test.set
+to ensure there is sufficient data for both of the datasets.
 
 ``` r
 set.seed(123)
@@ -2077,8 +2099,10 @@ test.set <- train.data[-ind, ]
 ```
 
 The train.data is a small dataset consisting only 592 rows of
-observation, and data partition splits it into 70% of train.set with 415
-rows of observation (\~70%) and 177 rows of observation (\~30%).
+observation, and data partition splits it into:
+
+-   70% train.set with 415 rows of observation and,  
+-   30% of test.set with 177 rows of observation.
 
 Data size of **train.set**:
 
@@ -2096,17 +2120,19 @@ dim(test.set)[1]
 
     ## [1] 177
 
-The test set has 54 and 123 of “N” and “Y”. There would be a little
-concern for “N” as its data size is not very large and therefore
-specificity of the model built would be affected.
+The test set has 54 and 123 of “N” and “Y”. I have a concern that the
+sample size for “N” might be insufficient and would cause low
+specificity. If it is the case I would need to try out other partitions
+such as 60:40 instead of current 30:70. Anyway, it will be detected in
+later stage.
 
 ``` r
-table(train.set$Loan_Status)
+table(test.set$Loan_Status)
 ```
 
     ## 
     ##   N   Y 
-    ## 127 288
+    ##  54 123
 
 ### 7.2 Handling Data Imbalance
 
@@ -2116,8 +2142,11 @@ for “Y”. It means that there is less data for models to learn to
 classify “N”.
 
 Accuracy rate calculated in later section would be misleading because it
-can be dominated by corrected predicted Y。Technically, it can be high
-in accuracy rate, high in sensitivity but low in specificity.
+could be dominated by “Y”. Technically, it means a high level in
+accuracy rate, a high level in sensitivity but a low level in
+specificity. This project put equal weight on sensitivity and
+specificity, and therefore a model with similar accuracy rate,
+sensitivity and specificity is desired.
 
 ``` r
 127/(127+288)*100
@@ -2125,11 +2154,19 @@ in accuracy rate, high in sensitivity but low in specificity.
 
     ## [1] 30.60241
 
-To solve this problem, I will use technique that can help making both
-“N” and “Y” having similar amount of data. This can be done using
-over-sampling, under-sampling, both-sampling, and synthetic data.
-Both-sampling is the technique that applies both over- and
-under-sampling.
+To solve this data unbalance problem, there are 4 techniques:
+
+1.  *Over-sampling*: Increase the sample size of “N” by randomly repeat
+    some of the existing data.  
+2.  *Under-sampling*: Reduce the sample size of “Y” to the sample size
+    of “N”. Some data of “Y” will be lost.  
+3.  *Both-sampling*: It uses over-sampling and under-sampling to a
+    dataset and make a balanced size between both “Y” and “N” group.  
+4.  *ROSE*: Create any desired sample size by synthesising artificial
+    data. However, some misleading data would need to be handled. For
+    example, the minimum of age is 0, but it could be a negative value
+    if ROSE is applied. Therefore, Data needs to be checked and cleaned
+    if ROSE is applied.
 
 ``` r
 set.seed(123)
@@ -2141,7 +2178,8 @@ rose_train <- ROSE(Loan_Status ~., data = train.set, N = 500)$data
 ```
 
 From my experience, the method “both” (combination of over-sampling and
-under-sampling) worked very well, and this will be used in this project.
+under-sampling) generally worked well, and this technique will be used
+in this project.
 
 ``` r
 table(both_train$Loan_Status)
@@ -2153,30 +2191,26 @@ table(both_train$Loan_Status)
 
 -   The “N” had 127 observations, and it has been increased to 208 by
     re-sampling. In re-sampling, it increases the sample size by
-    randomly repeating some of the original information.
+    randomly repeating some of the existing information.
 -   The “Y” had 288 observations, and it has been reduced to 207 with
-    some lost of information.  
+    some information lost.  
 -   The ratio of N:Y has now been improved from approximately 30:70 to
     approximately 50:50.
 
 ### 7.3 About Modeling
 
 It should be aware that no model is 100% accurate in machine learning.
-Therefore, different models are generally built based on different
-algorithms to search for the model that can do the best job in
-prediction.
+Generally, different models from different appropriate algorithms are
+built and the best model is searched and used to predict an unknown
+dataset.
 
 ### 7.4 Logistic Regression
 
 This project faces a binary / binomial problem which means the
-responding variable has only 2 values, which is either yes or no.
-Logistic regression will be applied. Logistic regression can also be
-used for multinomial situation where responding variable has more than 2
-levels.
-
-For logistic regression, it is not required to test the linear
-relationship between predictors and the responding variable, and
-therefore the normality of error terms.
+responding variable has only 2 group, such as yes or no. Logistic
+regression will be applied. For logistic regression, it is not required
+to test the linear relationship between predictors and the responding
+variable, and therefore the normality of error terms.
 
 Following show the results of a binomial logistic regression model with
 a 10-fold cross validation (cv) and a cv repetition of 3 times.
@@ -2241,26 +2275,25 @@ summary(model_logistic)
     ## 
     ## Number of Fisher Scoring iterations: 15
 
-*Insights*
+**Insights**
 
 -   Results show that variable **total\_income** and the level “480” in
     the variable **Loan\_Amount\_per\_term** are redundant because all
-    other variable have provided sufficient information at 100% level in
-    explaining the variability in the responding variables.
+    other variable have provided sufficient information in explaining
+    the variability in the responding variables.
 
 -   The model shows that most variables are not significantly related to
-    the loan status (which is the responding variable), except for
-    **gender (male), marital Status (yes), dependents (2), co-applicant
-    Income, credit history (1 & not sure) and property area
-    (semi-urban)**. These can be described as important variables that
-    is said to have real effect (Will not have 0 effect, but can be
-    negative) on the approval of loan, though they are statistically
-    significant, but their effects are subjected to their coefficient
-    estimates (log odd) and one’s significant effect sometime might be
-    too small to have a decisive impact.
+    the loan status (which is the outcome variable), except for **gender
+    (male), marital Status (yes), dependents (2), co-applicant Income,
+    credit history (1 & not sure) and property area (semi-urban)**.
+    These are statistically important variables that is said to have
+    real effect (Will not have 0 effect, but can be negative) on the
+    approval of loan, though they are statistically significant, but
+    their effects are subjected to their coefficient estimates (log odd)
+    and one’s significant effect sometime might be too small to have a
+    decisive impact.
 
-Therefore, a new logistic model is built with only significant variables
-as below.
+A new logistic model is built with only significant variables as below.
 
 ``` r
 model_logistic <- train(Loan_Status ~ Gender + Married + Dependents + CoapplicantIncome + Credit_History + Property_Area, 
@@ -2309,7 +2342,8 @@ summary(model_logistic)
 **Receiver Operating Characteristics Curve (ROC)**
 
 A ROC curve is plotted to search for the optimum AUC (area under the
-curve), sensitivity, specificity and the probability cutoff point.
+curve) that would give rise to the best sensitivity, specificity and the
+probability cutoff point.
 
 ``` r
 # Prediction on test.data
@@ -2336,23 +2370,23 @@ plot.roc(roc_logistic,
          main = "ROC - Logistic")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-45-1.png)<!-- --> Insights:
+![](loan_files/figure-gfm/unnamed-chunk-46-1.png)<!-- --> **Insights**
 
 -   The higher the AUC, the better the model. The diagonal line is where
-    AUC equal to 0.5, where the binary classification is random.  
--   AUC values of 0.756 is considered a good model and our model is very
-    useful with a AUC of 0.620.
--   The best probability cutoff point is 0.380. It will be a probability
-    cutoff point that any obversation above this point will be
-    classified as “Y”.
+    AUC is equal to 0.5, it is where the binary classification is based
+    on random chance.  
+-   AUC values of 0.756 is considered a good because it is higher than
+    0.5.  
+-   The best probability cutoff point suggested by this ROC with this
+    AUC is 0.380. It will be a probability cutoff point that any
+    observation above this point will be classified as “Y”.
 
 **Prediction with test data**
 
-Start prediction based on the probability cutoff point 0.356 detected
-above.
+Start prediction based on the probability cutoff point 0.380.
 
 ``` r
-# Set up dataframe
+# Set up data frame
 
 CM_logistic <- pred_logistic %>% 
   dplyr::select(Y) %>% 
@@ -2394,14 +2428,15 @@ confusionMatrix(CM_logistic$result_based0.38,
     ##        'Positive' Class : Y               
     ## 
 
-This model has accuracy of 82%, it may seems high but it is miss-leading
-because it can only correctly predicting “Y” correctly at 97%
-(sensitivity) but very low accuracy of predicting “N” at only 48%
-(specificity).
+This model has a very good accuracy rate at 82.5% but in above case,
+this accuracy rate is very miss-leading because it can only correctly
+predicting “Y” at 97.6% (sensitivity) and when predicting “N”, the
+accuracy drops to only 48% (specificity).
 
 Let’s try out the default 0.5 cut-off point, it is the default
-classificiation cut-off point if ROC is not generated for its suggestion
-of the best probability cutoff point.
+classification cut-off point if ROC is not generated for the best
+suggested probability cutoff point. The default 0.5 generally works well
+but ROC’s probability cutoff point is generally recommended.
 
 ``` r
 pred_logistic <- model_logistic %>% predict(test.set, type = 'raw') 
@@ -2443,22 +2478,29 @@ confusionMatrix(pred_logistic,
     ##        'Positive' Class : Y              
     ## 
 
-Although the accuracy rate drops from 82% to 73%, but the gap between
+The default probability cutoff point of 0.5 is a better point to be used
+in this case.
+
+Though the accuracy rate drops from 82.5% to 73.4%, but the gap between
 sensitivity and specificity become much smaller. In other words, the
-accuracy rate of correctly predicting “N” increased. Additionally, the
-accuracy rate is also higher than the “No Information Rate” of 69%, but
-it’s 95% CI has cover the no information rate. It indicates that there
-is a chance that this model can be useless. “No information rate” is the
-chance of getting “Y” when the classification is made based on random
-chance.
+accuracy rate of correctly predicting “N” increased at the trade-off of
+sensitivity. The overall accuracy rate become less miss-leading.
+
+The accuracy rate is also higher than the “No Information Rate” of 69%,
+but it’s 95% CI has cover the no information rate. It indicates that
+there is a chance that this model can be useless. “No information rate”
+is the chance of getting “Y” when the classification is made based on
+random chance.
 
 One may say the probability cut-off point of 0.38 is better because it
 has higher rate for accuracy and sensitivity, however, whether a model
-is good or bad is largely depends on its prediction purpose. If
-predicting “Y” is more important than predicting “N” then model with
-probability point of 0.38 is better than the 0.5 cutoff point.
+is good or bad is largely depends on the purpose of the prediction. If
+predicting “Y” is more important in a project than predicting “N” then
+the model with probability point of 0.38 is better than the 0.5 cutoff
+point.
 
-However, there is no specific purpose in this project and so I will be
+However, there is no specific purpose in this project specifying which
+sensitivity or specificity need to be emphasized and so I will be
 choosing the model that has somehow equal sensitivity and specificity
 (or closer gap).
 
@@ -2475,15 +2517,15 @@ Therefore, in logistic regression, 0.5 cutoff point is much better.
 
 #### 7.5.1 Decision Tree Model
 
-A decision tree model is built. It is a popular non-parametric method
-that can handle missing data (though I have handled them) amd immune to
-multicollinearity and outliers. It is a method usually built for quick
-understanding of the variables and their effects on the outcome.
+A decision tree model is built. It is a popular non-parametric algorithm
+that can handle missing data (though I have handled them), and is immune
+to multicollinearity and outliers. It is a method usually built for
+quick understanding of the variables and their effects on the outcome.
 
-Decision tree continuously split the data into 2 and repeatedly until
+Decision tree continuously splits the data into 2 and repeatedly until
 maximum homogeneity within the new parts are achieved. The entire
 structure is like a upside-down tree with most important variables being
-located at the top, and each split there are decision rules to help
+located at the top, and there are decision rules in each split to help
 making classification.
 
 **Model building**
@@ -2520,9 +2562,9 @@ model_dt
     ## The final value used for the model was cp = 0.03381643.
 
 A decision tree model is built and 0.0338 is suggested the best CP. CP
-is a value to limit the size of a decision tree and the default is 0.01,
-and this value generally can do a good job however the optimum one is
-generally generated and will be automatically used.
+is a value to limit the size of a decision tree and the default is 0.01.
+The default CP level generally can do a good job however the optimum one
+is generally generated and will be automatically selected by the model.
 
 From following graph, CP at 0.0338 has the highest accuracy.
 
@@ -2530,9 +2572,9 @@ From following graph, CP at 0.0338 has the highest accuracy.
 plot(model_dt)
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-49-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-50-1.png)<!-- -->
 
-The best model has following decision rules:
+This decision tree model has following decision rules:
 
 ``` r
 model_dt$finalModel
@@ -2549,22 +2591,29 @@ model_dt$finalModel
     ##     5) Loan_Amt_per_term>=28.5 43  14 N (0.3255814 0.6744186) *
     ##   3) Credit_History1< 0.5 125  23 N (0.1840000 0.8160000) *
 
-The "\*" means that branch is a terminal node. Following is a better, as
-well a typical representation of a decision tree. The tree helps us to
-make decision. For examples, if an observation has credit history of 0,
-it will be directed to “No”, and it should be a disapproved case by 82%
-of chance. This concept is the same to the left direction where the
-result is leading to “Y” of approved-loan scenario.
+The "\*" means that branch is a terminal node.
+
+Following is a better, as well a typical representation of a decision
+tree. The root node with the most important variable is located at the
+top, and each split will create two branches and two root nodes. Nodes
+at the very based are terminal node where the splitting stops. During
+each split, decision roles will be made available.
+
+The tree helps us to make decision. For examples, if an observation has
+credit history of 0, it will be directed to “No” at the root node, and
+it will be classified as disapproved case “N” by 82% of chance. This
+concept is the same to the left direction where the result is leading to
+“Y”.
 
 ``` r
 rattle::fancyRpartPlot(model_dt$finalModel)
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-51-1.png)<!-- --> **Receiver
+![](loan_files/figure-gfm/unnamed-chunk-52-1.png)<!-- --> **Receiver
 Operating Characteristics Curve (ROC)**
 
-This is to find the best Probability cutoff point to be used for
-prediction.
+Similar to logistic regression, ROC is also applied to find its
+suggested probability cutoff point to be used for prediction.
 
 ``` r
 # prediction on test set
@@ -2592,15 +2641,15 @@ plot.roc(roc_dt,
          main = "ROC - Decision Tree")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-52-1.png)<!-- --> The best
+![](loan_files/figure-gfm/unnamed-chunk-53-1.png)<!-- --> The best
 probability cutoff point suggested by ROC for decision tree model to
 predict “Y” is 0.255. Any observation above 0.255 will be classified as
 “Y”.
 
 **Predictions**
 
-This predictions will based on the calculated best probability cutoff
-point 0.255 to determine an observation is “Y”.
+This prediction will be based on the ROC suggested probability cutoff
+point 0.255 to determine if an observation is “Y”.
 
 ``` r
 CM_dt <- pred_dt %>% 
@@ -2643,9 +2692,9 @@ confusionMatrix(CM_dt$result_based0.745, test.set$Loan_Status, positive = "Y")
 
 The model has fairy high accuracy rate at 77.4% with a rate higher than
 “No Information Rate”, it indicates that the model is useful. However,
-the probability gives miss-leading accuracy rate, with big gap in
-sensitivity and specificity. There is at least 37% different between
-sensitivity and specificity.
+the probability gives miss-leading accuracy rate, because there is a big
+gap between sensitivity and specificity. There is at least 37% different
+between sensitivity and specificity.
 
 ``` r
  0.8862 - 0.51
@@ -2660,10 +2709,6 @@ CM_dt2 <- model_dt %>% predict(test.set, type = "raw")
 
 confusionMatrix(CM_dt2, test.set$Loan_Status, positive = "Y")
 ```
-
-    ## Warning in confusionMatrix.default(CM_dt2, test.set$Loan_Status, positive =
-    ## "Y"): Levels are not in the same order for reference and data. Refactoring data
-    ## to match.
 
     ## Confusion Matrix and Statistics
     ## 
@@ -2695,7 +2740,7 @@ confusionMatrix(CM_dt2, test.set$Loan_Status, positive = "Y")
 
 With the probability cutoff point of 0.5, the gap between sensitivity
 and specificity become smaller with a difference at 20.4%. However, it
-is still considered a large disparity.
+is still considered a big gap.
 
 ``` r
 0.7967-0.5926
@@ -2707,19 +2752,17 @@ I will take this decision tree as a not-so-good model for prediction.
 
 #### 7.5.2 Bagging model
 
-Now, I am building more than just a single tree like in the decision
-tree section. Every single tree
+Now, I am building more than just a single tree by using the “bagging”
+method.
 
-A method is called *bagging* which stands for “Bootstrap Aggregating”.
-This method randomly samples the training set multiple times (with
-replacement, means after taking sample for the first model, the data is
-put back to be sampled for second model). Ultimately, many decion tree
-models are built, and the results of these models will be combined to
-make the best prediction.
+The *bagging* stands for “Bootstrap Aggregating”. This method samples
+the training set multiple times, randomly with replacement and build
+multiple trees. The decision of any classification will be based on the
+overall result of all the trees.
 
 **Model building**
 
-The model is built and showing following feature.
+Building the model:
 
 ``` r
 set.seed(123)
@@ -2748,7 +2791,7 @@ model_bag
     ##   Accuracy   Kappa    
     ##   0.8985918  0.7972083
 
-There were 25 bootstrap replications involved in the model.
+There were 25 bootstrap replications involved in this algorithm.
 
 ``` r
 model_bag$finalModel
@@ -2787,9 +2830,10 @@ plot.roc(roc_bag,
          main = "ROC - Bagging")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-59-1.png)<!-- --> The best
+![](loan_files/figure-gfm/unnamed-chunk-60-1.png)<!-- --> The best
 probability cutoff point is suggested to be 0.660. Any observation with
-probability above this level will be classified as “Y” by bagging model.
+probability above this level will be classified as “Y” by the bagging
+model.
 
 ``` r
 # set up
@@ -2836,7 +2880,7 @@ confusionMatrix(CM_bag[, 2],
 
 **Insights**
 
--   The model has a good accuracy rate of 72% and this is higher than
+-   The model has a good accuracy rate of 72.3% and this is higher than
     the “No information rate” of 69.5%. It indicates that this model is
     useful and perform better than random chance.
 
@@ -2851,10 +2895,10 @@ confusionMatrix(CM_bag[, 2],
     ## [1] 0.13
 
 Even the default probability cutoff point of 0.5 has a larger different
-between sensitivity and specificity rate of 17% as follow. Therefore,
-for my purpose of having an fair accurate model which put the same
-weight on both sensitivity and specificity, the probability point of
-0.66 suggested by ROC is doing a better job.
+between sensitivity and specificity rate at 17% (shown below).
+Therefore, for my purpose of searching for a fair, accurate model which
+put the same weight on both sensitivity and specificity, the probability
+point of 0.66 suggested by ROC is doing a better job.
 
 ``` r
 # set up
@@ -2906,29 +2950,22 @@ confusionMatrix(CM_bag2,
 
     ## [1] 0.1753
 
-Again, there is no right or wrong about a model in this case. It depends
-on the purpose of the prediction. If the purpose to predict Y only, then
+Again, there is no right or wrong about a model. It depends on the
+purpose of the prediction. If the purpose is to predict Y only, then
 this model with 0.5 probability cutoff point is certainly a better model
 than the model that used the R0C recommended cutoff point at 0.66.
 
 #### 7.5.3 Random Forest
 
 Random forest is one of the powerful machine learning algorithm that
-many machine learning practitioners love to use.
+many machine learning practitioners prefer to use.
 
-It is similar to planting many decisions. There are in fact many
-possible outcomes other than the outcome calculated in the decision tree
-section. It is because of randomisation nature of the algorithm and how
-I set.seed (A R code for randomisation) a model such as set.seed(123).
-If I set a different randomisation index, the result might be different.
-Therefore, I am building 500 trees in the random forest in this section
-to take possible result variations into account. 500 is a default value
-and is changeable.
-
-Random forest applies the technique of bagging which will samples the
-train dataset numerous times to build numerous tree, however each tree
-has limited in the selection of available variables (or known as
-predictors in machine learning).
+It is similar to bagging method that build many decisions trees based on
+random re-sampling with replacement. 500 tree models will be built in
+this random forest model. 500 is the default value but is change-able.
+The only difference between random forest and bagging is that random
+forest limit each tree in the selection of available variables (or known
+as predictors in machine learning).
 
 ``` r
 set.seed(123)
@@ -2986,13 +3023,13 @@ model_rf$finalModel
     ## Y 191  16  0.07729469
     ## N  19 189  0.09134615
 
-The accuracy is optimum when “mtry” equal to 26.
+The accuracy is optimum when “mtry” is equal to 26.
 
 ``` r
 plot(model_rf)
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-66-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
 
 **Receiver Operating Characteristics Curve (ROC)**
 
@@ -3023,11 +3060,12 @@ plot.roc(ROC_rf,
          main = "ROC - Random Forest")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-67-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-68-1.png)<!-- -->
 
-The best probability cut off points is 0.523, with AUC of 0.802, which
-is higher than the 50% of random chance. Therefore it is a model that is
-perform better than random chance.
+The best probability cutoff points is 0.523, with AUC (area under the
+curve) equal to 0.802 which is a value higher than the 50% random
+chance. Therefore, it is a useful model that can perform better than
+random chance.
 
 ``` r
 # Set df
@@ -3070,16 +3108,14 @@ confusionMatrix(CM_rf[, 2], test.set$Loan_Status, positive = "Y")
     ##        'Positive' Class : Y               
     ## 
 
-Random forest is performing superior than other models that I built
-previously.
+Random forest is performing superior than other models built previously.
 
 -   This random forest model has the highest accuracy at 77.4%.  
 -   This accuracy is higher than the “No Information Rate” at 69.5%.  
 -   The “No Information Rate” is outside the 95% CI of 70.5%-83.3%, it
     indicates that the accuracy is significant.  
 -   The sensitivity is the highest so far at 80.5%.  
--   The specificity is not the highest but it is fairly good at
-    70.37%.  
+-   The specificity is not the highest but is fairly good at 70.37%.  
 -   The gap between sensitivity and specificity is the smallest compared
     to other models built.
 
@@ -3124,22 +3160,25 @@ confusionMatrix(CM_rf2, test.set$Loan_Status, positive = "Y")
     ##        'Positive' Class : Y              
     ## 
 
-Random forest model with 0.5 probability cutoff point do no have a good
-performance. The accuracy is lower, the gap between sensitivity and
-specificity is larger, and “No Information Rate” fall into the 95% CI
-range, indicating that the model may not perform better than random
-chance when predicting “Y”.
+Random forest model with 0.5 probability cutoff point do no have a
+better performance. The accuracy is lower, the gap between sensitivity
+and specificity is larger, and “No Information Rate” fall into the 95%
+CI range which indicating that the model may not perform better than
+random chance when predicting “Y”.
 
-Therefore, random forest model is the best model so far with the
-probability cutoff point at 0.523.
+Therefore, random forest model is the best model so far with the ROC
+suggested probability cutoff point at 0.523.
 
 #### 7.5.4 XgbTree
 
 Extreme gradient boosting (XgbTree) is being run in this section. It is
-an extremely popular method that having the concept as random forest but
-the different is that there is no bootstrap sampling and the tree models
-are being built sequentially that learn the mistake from its previous
-model. Therefore, the trees built are become better and better.
+an extremely popular method, it is similar to random forest but the
+difference is that there is no bootstrap sampling and the tree models
+are being built sequentially. It means trees are not built parallee,
+each tree built will learn the mistake from the previous tree.
+Therefore, the trees built will become better and better.
+
+Building the model with complex tunning parameter:
 
 ``` r
 #set.seed(123)
@@ -3195,8 +3234,8 @@ plot.roc(roc_xgb,
          main = "ROC - Extreme Gradient Boosting")
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-72-1.png)<!-- --> The optimum
-probability cutoff point is 0.372.
+![](loan_files/figure-gfm/unnamed-chunk-73-1.png)<!-- --> The optimum
+probability cutoff point suggested by ROC is 0.372.
 
 **Prediction**
 
@@ -3238,7 +3277,7 @@ confusionMatrix(CM_df[,2], test.set$Loan_Status, positive = "Y")
     ## 
 
 Accuracy rate based on the recommended probability 0.372 is very
-misleading because the gap betweeon sensitivity and specificity is too
+misleading because the gap between sensitivity and specificity is too
 high, at 30.98%.
 
 ``` r
@@ -3247,13 +3286,11 @@ high, at 30.98%.
 
     ## [1] 30.98
 
-If I say this model has 80.8% accuracy but when predicting “N”, its
-actual accuracy is only 59.26% (defined as specificity). If the case is
-to have a fair accuracy in predicting “Y” and “N”, then this xgboost
-model based on the 0.372 probability cutoff point is not a good model.
+For example, if I say this model has 80.8% accuracy but when predicting
+“N”, its actual accuracy is only 59.26% (defined as specificity).
 
-When the default 0.5 probability cutoff point is used, the model
-performance betcome better.
+When the default 0.5 probability cutoff point is used, model performance
+become better.
 
 ``` r
 CM_df2 <- model_xgb %>% predict(test.set, type = "raw")
@@ -3293,44 +3330,33 @@ confusionMatrix(CM_df2, test.set$Loan_Status, positive = "Y")
     ##        'Positive' Class : Y              
     ## 
 
-However, its accuracy rate is lower than random forest at 77.4% and this
-xgboost model might be useless by chance as the 95% CI range cover the
-“No Information Rate” of 69.5%. The gap between sensitivity and
-specificity is also higher for xgboost compared to random forest model.
+However, its accuracy rate is lower than the random forest model at
+77.4% built in previous section. This xgboost model might also be
+useless by chance as the 95% CI range cover the “No Information Rate” of
+69.5%. The gap between sensitivity and specificity is also higher when
+compared to the random forest model.
 
-Therefore, random forest is the best algorithm in the models I have
-built previously and will be used to predict the unknown dataset,
-**test.data** that do not have the loan approval data “Loan\_Status”.
-
-Looking at the variables of test.data:
-
-``` r
-names(test.data)
-```
-
-    ##  [1] "Gender"            "Married"           "Dependents"       
-    ##  [4] "Education"         "Self_Employed"     "ApplicantIncome"  
-    ##  [7] "CoapplicantIncome" "total_income"      "Income_provider"  
-    ## [10] "LoanAmount"        "Loan_Amount_Term"  "Loan_Amt_per_term"
-    ## [13] "Credit_History"    "Property_Area"
+Therefore, random forest is the best algorithm among all model built
+previously and will be used to predict the unknown dataset,
+**test.data** that do not have the outcome variable “Loan\_Status”.
 
 ### 7.6 Variable Importance
 
-Before making the prediction, following are the Importance plot by the
-tree models I have built. It is the special type of plot by tree
-algorithm to tell which variables are important.
+Before making the prediction, following are Importance plots by the tree
+models I have built. It is the special type of plot by tree algorithms
+to help us tell which variables are important.
 
-Since, the random forest model is the best model, it will be given more
-weight. The random forest model suggests that Credit History, applicant
-income, total income (applicant income + co-applicant income). loan
-amount per term (loan amount per month) and the loan amount are the top
-5 most important variables.
+Since, the random forest model is the best model, it should be given
+more weight. The random forest model suggests that credit history,
+applicant income, total income (applicant income + co-applicant income),
+loan amount per term (loan amount per month), and the loan amount are
+the top 5 most important variables.
 
-This results are supported by other tree-based algorithms as well,
-though the ranking of the top 5 or top variables might be slightly
-different but they tell the same story. Slight fluctuation is expected.
-Again, the result of random forest model should be emphasized as this is
-the best model in the case.
+This result is supported by other tree-based algorithms, though the
+ranking of the top 5 or top variables might be slightly different but
+they tell the same story. Slight fluctuation is expected. Again, the
+result of random forest model should be emphasized as this is the best
+model.
 
 ``` r
 p1 <- plot(varImp(model_dt), main = "Decision Tree")
@@ -3347,16 +3373,15 @@ ggarrange(p1, p2, p3, p4,
 
 ### 7.7 Final Prediction
 
-After building various machine learning models, train them using
-**train.set**, and evaluate them using **test.set**。 Random forest
+After building various machine learning models, trained them using
+**train.set**, and evaluated them using **test.set**。 Random forest
 model with the probability cutoff point at 0.523 had the best
-performance, and therefore this model is used to make the final
+performance, and therefore this model will be selected to make the final
 prediction.
 
 The final prediction is carried out on the **test.data** dataset. This
-dataset do not have loan\_status to show approve or disapprove of a loan
-application. Therefore, it is a dataset without results and requiring
-the best model to predict.
+dataset do not have loan\_status to show application outcome. Therefore,
+it is a dataset without results and requiring the best model to predict.
 
 This model has 362 applicants (also can be known as observation or rows)
 and 14 variables.
@@ -3376,8 +3401,7 @@ This level means whether the application has only the co-applicant has
 income, and the main applicant does not has an income. There are only 2
 observation (data). All the models built, especially the best random
 forest model did not consider this level and therefore these 2
-observation will be removed before making prediction before making
-prediction.
+observation will be removed before making prediction.
 
 ``` r
 summary(test.data$Income_provider)
@@ -3395,11 +3419,10 @@ test.data2 <- test.data %>%
 
 **Removing the levels in the Loan Amount Term**
 
-It is because that I set Loan amount term to be factor variable,
-therefore there are some levels in the unknown dataset are excluded when
-building the random forest model such as 6 (1 application) and 350 (1
-application). They cannot be predicted based on the built random forest
-model and so they will be removed.
+Similar concept, the levels “6” (1 application) and “350” (1
+application) in the variable “Loan Amount Term” will be removed. They
+cannot be predicted based on the built random forest model and so they
+will be removed.
 
 The levels used to build the model:
 
@@ -3444,15 +3467,7 @@ final_prediction <- final_prediction %>%
   mutate(Kar_prediction = ifelse(Y > 0.523, "Y", "N"),
          Kar_prediction = as.factor(Kar_prediction)) %>% 
   rename(probability = Y)
-```
 
-Above are the results predicted for each application, total of 358
-applications (rows).
-
-Adding the results to the test.data table and make a graph to see the
-results:
-
-``` r
 # set up df
 
 df <- test.data2 %>% 
@@ -3463,9 +3478,7 @@ df <- test.data2 %>%
   ungroup() %>% 
   mutate(total = sum(count),
          per = round(count/total, 2))
-```
 
-``` r
 # plot
 
 ggplot(df, aes(x = "", y = count, fill = Kar_prediction)) +
@@ -3485,19 +3498,18 @@ ggplot(df, aes(x = "", y = count, fill = Kar_prediction)) +
   scale_fill_manual(values = c("red", "green2"))
 ```
 
-![](loan_files/figure-gfm/unnamed-chunk-86-1.png)<!-- -->
+![](loan_files/figure-gfm/unnamed-chunk-84-1.png)<!-- -->
 
 ## 8 CONCLUSION
 
-In conclusion based on the dataset with loan status (responding
-variable):
+In conclusion,
 
 From EDA:
 
 -   There are more male applicants than female but both genders have
-    equal approval-reject rate at 70%:30%.  
--   From EDA, there is no clear trend that applicant income, coapplicant
-    income and total income impact the success rate of loan.  
+    equal acceptance-rejection rate at 70%:30%.  
+-   Tere is no clear trend that applicant income, co-applicant income
+    and total income impact the success rate of loan.  
 -   However, if both applicant and the co-applicant of an application
     have incomes, it may help the application get an approved. In the
     approved application “Y”, there are 38% more application with
@@ -3505,8 +3517,8 @@ From EDA:
 -   Education may help a little, only 8% higher success rate.  
 -   9% higher success rate for married applicants.  
 -   Applicants without credit history is highly likely get a rejection
-    (only 8% succeeed). 80% of Applicants with a credit history got
-    their application approved.
+    (only 8% succeed). Among all the approved application, 80% of
+    applicants had credit history.
 
 From machine learning:
 
@@ -3517,24 +3529,27 @@ best performing metrics. Compared to other model:
 
 -   The model has the highest accuracy at 77.4%.  
 -   This accuracy is higher than the “No Information Rate” at 69.5%.  
--   The “No Information Rate” is outside the 95% CI of 70.5%-83.3%, it
-    indicates that the accuracy rate is significant.  
--   The sensitivity is the highest so far at 80.5%.  
--   The specificity is not the highest but it is fairly good at
-    70.37%.  
+-   The “No Information Rate” is outside the 95% CI range of
+    70.5%-83.3%, it indicates that the accuracy rate is significant.  
+-   The sensitivity is the highest at 80.5%.  
+-   The specificity is not the highest but is fairly good at 70.37%.  
 -   The gap between sensitivity and specificity is the smallest compared
     to other models built.
 
-The random forest model suggests that,  
-\* Credit History,  
-\* applicant income,  
-\* total income (applicant income + co-applicant income)  
-\* loan amount per term (loan amount per month)  
-\* loan amount, are the top 5 most important variables.
+The random forest model suggests that following are the top 5 most
+important variables.
+
+-   credit history,  
+-   applicant income,  
+-   total income (applicant income + co-applicant income)  
+-   loan amount per term (loan amount per month)  
+-   loan amount
 
 The final prediction was made on a unknown dataset with 362 applications
 (observation) and predicted that 37% (133) of the applications will be
 rejected and 63% (255) of the applications will be approved.
+
+*Thank you for reading.*
 
 ## 9 REFERENCE
 
