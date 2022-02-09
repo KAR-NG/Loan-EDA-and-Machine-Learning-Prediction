@@ -1,5 +1,4 @@
 ---
-
 title: "Loan EDA and Machine Learning Prediction"
 author: "Kar Ng"
 date: "1/24/2022"
@@ -8,7 +7,6 @@ output:
     toc: true
     toc_depth: 4
 always_allow_html: yes
-
 ---
 
 

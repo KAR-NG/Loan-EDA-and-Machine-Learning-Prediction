@@ -1,3 +1,7 @@
+Loan EDA and Machine Learning Prediction
+================
+Kar Ng
+1/24/2022
 
 -   [1 SUMMARY](#1-summary)
 -   [2 R PACKAGES](#2-r-packages)
@@ -42,14 +46,6 @@
     -   [7.7 Final Prediction](#77-final-prediction)
 -   [8 CONCLUSION](#8-conclusion)
 -   [9 REFERENCE](#9-reference)
-
-------------------------------------------------------------------------
-
-title: “Loan EDA and Machine Learning Prediction” author: “Kar Ng” date:
-“1/24/2022” output: github\_document: toc: true toc\_depth: 4
-always\_allow\_html: yes
-
-------------------------------------------------------------------------
 
 ------------------------------------------------------------------------
 
